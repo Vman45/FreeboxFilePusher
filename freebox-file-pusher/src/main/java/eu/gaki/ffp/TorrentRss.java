@@ -19,7 +19,7 @@ import com.rometools.rome.io.SyndFeedOutput;
 
 public class TorrentRss {
 
-// Rss exemple
+// Rss exemple 
 //	<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
 //		<channel>
 //			<title>Movies > Action - Mininova</title>
@@ -45,7 +45,7 @@ public class TorrentRss {
 	
 	private static final DateFormat DATE_PARSER = new SimpleDateFormat("yyyy-MM-dd");
 	
-	public File generateRss(File directory, Collection<TorrentFile> torrentFiles) {
+	public File generateRss(File directory, Collection<File> torrentFiles) {
 		
 		String[] args = new String[]{"atom_1.0","freeboxFilePusherRss.xml"};
 		

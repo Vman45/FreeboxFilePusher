@@ -7,9 +7,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
 
 import com.turn.ttorrent.common.Torrent;
 import com.turn.ttorrent.tracker.TrackedTorrent;
@@ -19,12 +17,10 @@ public class FreeboxFilePusherRunnable implements Runnable {
 
 	private Properties configuration;
 	private Tracker tracker;
-	private ExecutorService initialSeederPool;
 
-	public FreeboxFilePusherRunnable(Properties configuration, Tracker tracker, ExecutorService initialSeederPool) {
+	public FreeboxFilePusherRunnable(Properties configuration, Tracker tracker) {
 		this.configuration = configuration;
 		this.tracker = tracker;
-		this.initialSeederPool = initialSeederPool;
 	}
 
 	@Override
@@ -38,28 +34,18 @@ public class FreeboxFilePusherRunnable implements Runnable {
 				if (folder.isDirectory()) {
 					File[] list = folder.listFiles();
 					for (File dataFile : list) {
-						if (!isFileInTracker(dataFile)) {
+						File torrentFile = computeTorrentFileName(dataFile);
+						if (!torrentFile.exists()) {
 							// Create torrent file
-							File torrentFile = createTorrentFile(dataFile);
-							if (torrentFile != null) {
-								// Add file to tracker
-								TrackedTorrent torrent = TrackedTorrent.load(torrentFile);
-								tracker.announce(torrent);
-								// Create initial seeder
-								Thread t = new Thread(new InitialSeederRunnabe(tracker, torrent, torrentFile, dataFile), torrent.getName());
-								t.start();
-//								initialSeederPool.execute();
-							}
+							torrentFile = createTorrentFile(dataFile);
 						}
+						// Add file to tracker
+						TrackedTorrent torrent = TrackedTorrent.load(torrentFile);
+						torrent.setSeederRunnable(new InitialSeederRunnable(configuration, tracker, torrent, torrentFile, dataFile));
+						tracker.announce(torrent);
 					}
 				}
 			}
-
-			// Delete torrent files which files no more exist
-
-			// Create torrent files for each files and folders in watched folder
-
-			// Add torrent files to tracker
 
 			// Publish RSS file with torrent files
 
@@ -70,14 +56,11 @@ public class FreeboxFilePusherRunnable implements Runnable {
 
 	private File createTorrentFile(File file) {
 		File torrentFile = null;
+		OutputStream fos = null;
 		try {
-			torrentFile = new File(
-					configuration.getProperty("torrent.file.folder"),
-					file.getName() + ".torrent");
-			OutputStream fos = new FileOutputStream(torrentFile);
+			torrentFile = computeTorrentFileName(file);
+			fos = new FileOutputStream(torrentFile);
 
-//			URI announceURI = new URI(
-//					configuration.getProperty("torrent.announce.url"));
 			URI announceURI = tracker.getAnnounceUrl().toURI();
 
 			String creator = String.format("%s (ttorrent)",
@@ -92,33 +75,28 @@ public class FreeboxFilePusherRunnable implements Runnable {
 			} else {
 				torrent = Torrent.create(file, announceURI, creator);
 			}
-
 			torrent.save(fos);
 		} catch (URISyntaxException | InterruptedException | IOException e) {
 			e.printStackTrace();
+		} finally {
+			if (fos != null) {
+				try {
+					fos.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 
 		return torrentFile;
 	}
 
-	/**
-	 * Check if a file is already in tracker
-	 * 
-	 * @param file
-	 *            the File to search
-	 * @return true if File is found in tracker
-	 */
-	private boolean isFileInTracker(File file) {
-		boolean result = false;
-		Collection<TrackedTorrent> trackedTorrents = tracker
-				.getTrackedTorrents();
-		for (TrackedTorrent trackedTorrent : trackedTorrents) {
-			if (trackedTorrent.getName().equals(file.getName())) {
-				result = true;
-				break;
-			}
-		}
-		return result;
+	private File computeTorrentFileName(File file) {
+		File torrentFile;
+		torrentFile = new File(
+				configuration.getProperty("torrent.file.folder"),
+				file.getName() + ".torrent");
+		return torrentFile;
 	}
 
 }

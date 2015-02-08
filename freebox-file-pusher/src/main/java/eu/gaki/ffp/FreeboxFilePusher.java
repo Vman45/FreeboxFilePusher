@@ -4,6 +4,7 @@
 package eu.gaki.ffp;
 
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
@@ -24,10 +25,10 @@ import com.turn.ttorrent.tracker.Tracker;
 public class FreeboxFilePusher implements Daemon {
 
 	private static final String DEFAULT_REPEAT_INTERVAL = "600";
-	private ScheduledExecutorService executorService;
-	private ExecutorService initialSeederPool;
+	private ScheduledExecutorService watchExecutor;
 	private Properties configuration = new Properties();
 	private Tracker tracker;
+//	private static ExecutorService seedingClientPool = Executors.newFixedThreadPool(9);
 
 	@Override
 	public void init(DaemonContext context) throws DaemonInitException,
@@ -47,30 +48,29 @@ public class FreeboxFilePusher implements Daemon {
 		if (configurationInputStream != null) {
 			configuration.load(configurationInputStream);
 		}
-		executorService = Executors.newSingleThreadScheduledExecutor();
+		watchExecutor = Executors.newSingleThreadScheduledExecutor();
 		String trackerPort = configuration.getProperty("tracker.port", "6969");
-        String trackerIp = configuration.getProperty("tracker.ip", "127.0.0.1");
+        String trackerIp = configuration.getProperty("tracker.ip", InetAddress.getLocalHost().getHostName());
 		tracker = new Tracker(new InetSocketAddress(trackerIp,Integer.valueOf(trackerPort)), "FreeboxFilePusher");
-        initialSeederPool = Executors.newSingleThreadExecutor();
 	}
 
 	@Override
 	public void start() throws Exception {
 		String repeatInterval = configuration.getProperty("repeat.interval.seconds", DEFAULT_REPEAT_INTERVAL);
-		executorService.scheduleWithFixedDelay(new FreeboxFilePusherRunnable(configuration, tracker, initialSeederPool), 1, Long.valueOf(repeatInterval), TimeUnit.SECONDS);
+		watchExecutor.scheduleWithFixedDelay(new FreeboxFilePusherRunnable(configuration, tracker), 1, Long.valueOf(repeatInterval), TimeUnit.SECONDS);
 		tracker.start();
 	}
 
 	@Override
 	public void stop() throws Exception {
-		executorService.shutdown();
+		watchExecutor.shutdown();
 		tracker.stop();
 	}
 
 	@Override
 	public void destroy() {
 		tracker = null;
-		executorService = null;
+		watchExecutor = null;
 	}
 	
 	public static void main(String[] args) throws DaemonInitException, Exception {
@@ -88,5 +88,9 @@ public class FreeboxFilePusher implements Daemon {
 		test.init(context);
 		test.start();
 	}
+	
+//	public static void addSeederClient(InitialSeederRunnable seederRunnable) {
+//		seedingClientPool.execute(seederRunnable);
+//	}
 
 }

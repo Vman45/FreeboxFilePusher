@@ -21,11 +21,48 @@
 		</plugins>
 	</build>
 	<dependencies>
-		<dependency>
-			<groupId>com.turn</groupId>
-			<artifactId>ttorrent</artifactId>
-			<version>1.4</version>
+<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.8</version>
 		</dependency>
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.simpleframework</groupId>
+			<artifactId>simple</artifactId>
+			<version>4.1.21</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.6.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<version>6.1.1</version>
+			<scope>test</scope>
+		</dependency>
+
+<!-- 		<dependency> -->
+<!-- 			<groupId>net.sf</groupId> -->
+<!-- 			<artifactId>jargs</artifactId> -->
+<!-- 			<version>1.0</version> -->
+<!-- 		</dependency>	 -->
+		
+<!-- 		<dependency> -->
+<!-- 			<groupId>com.turn</groupId> -->
+<!-- 			<artifactId>ttorrent</artifactId> -->
+<!-- 			<version>1.4</version> -->
+<!-- 		</dependency> -->
 		<dependency>
 			<groupId>com.rometools</groupId>
 			<artifactId>rome</artifactId>

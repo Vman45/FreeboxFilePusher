@@ -61,7 +61,6 @@ public class TorrentRss {
      * @return the file
      */
     public File generateRss(final Properties configuration, final Collection<TrackedTorrent> torrentFiles) {
-
 	// Get RSS file location
 	final String rssLocation = configuration.getProperty("rss.location", "rss.xml");
 	final File rssFile = new File(rssLocation);
@@ -99,6 +98,7 @@ public class TorrentRss {
 	    rss = rss.replace("${items}", items.toString());
 
 	    writer.write(rss);
+	    LOGGER.info("Write RSS file {}", rssLocation);
 	} catch (final Exception e) {
 	    LOGGER.error("Cannot write rss file:" + e.getMessage(), e);
 	}

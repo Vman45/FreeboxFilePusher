@@ -128,22 +128,33 @@ public class SeederClient {
 	// Enable disable seeder client on demand
 	// A peer want to download the torrent
 	if (torrent.leechers() > 0 && torrent.seeders() == 0) {
+	    LOGGER.info(torrentFile.getPath() + ": {} leechers, {} seeders", torrent.leechers(), torrent.seeders());
 	    // No seeder for this torrent, we create a client seeder
 	    startSeeding();
-	} else if (torrent.leechers() == 0 && torrent.seeders() != 0) {
-	    // if no leecher we wait a delay before stop the seederClient (some bittorent client stop and relaunch)
-	    final String keepActiveString = configuration.getProperty("keep.seeder.active.millisecond", "600000");
+	} else if (torrent.leechers() == 0) {
+	    LOGGER.info(torrentFile.getPath() + ": {} leechers, {} seeders", torrent.leechers(), torrent.seeders());
+	    // No more leecher
 	    if (noLeecherDate == null) {
 		noLeecherDate = new Date();
-	    } else if (System.currentTimeMillis() > noLeecherDate.getTime() + Long.valueOf(keepActiveString)) {
-		stopSeeding();
-		noLeecherDate = null;
+		LOGGER.info("No more leecher for file: {}", torrentFile.getPath());
 	    }
-	} else if (torrent.seeders() >= 2) {
-	    // File is sent completely
-	    stopAndDelete();
-	    torrent.setSeederClient(null);
+
+	    if (torrent.seeders() >= 2) {
+		// File is sent completely
+		stopAndDelete();
+		noLeecherDate = null;
+		torrent.setSeederClient(null);
+	    } else {
+		// One one seeder (us) probably the bittorent client put the torrent in stalled state (he don't yet see
+		// the seeder) so we wait
+		final String keepActiveString = configuration.getProperty("keep.seeder.active.millisecond", "600000");
+		if (System.currentTimeMillis() > noLeecherDate.getTime() + Long.valueOf(keepActiveString)) {
+		    stopSeeding();
+		    noLeecherDate = null;
+		}
+	    }
 	}
+
     }
 
     /**

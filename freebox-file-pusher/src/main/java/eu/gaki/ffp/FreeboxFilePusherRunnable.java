@@ -55,6 +55,8 @@ public class FreeboxFilePusherRunnable implements Runnable {
     @Override
     public void run() {
 	try {
+	    boolean modifyTrackerAnnounceList = false;
+
 	    // Watch new files and folder in watched folder
 	    final String folderLocation = configuration.getProperty(
 		    "folders.to.watch", null);
@@ -74,6 +76,8 @@ public class FreeboxFilePusherRunnable implements Runnable {
 			    final TrackedTorrent torrent = TrackedTorrent.load(torrentFile);
 			    torrent.setSeederClient(new SeederClient(configuration, torrent, torrentFile, dataFile));
 			    tracker.announce(torrent);
+			    modifyTrackerAnnounceList = true;
+			    LOGGER.info("Announce file: {}", torrentFile.getPath());
 			}
 		    }
 		}
@@ -85,10 +89,14 @@ public class FreeboxFilePusherRunnable implements Runnable {
 		    final File torrentFile = torrent.getSeederClient().getTorrentFile();
 		    if (!torrentFile.isFile()) {
 			tracker.remove(torrent);
+			modifyTrackerAnnounceList = true;
+			LOGGER.info("Remove announce file: {}", torrentFile.getPath());
 		    }
 		}
-		// Publish RSS file with tracked torrent files
-		torrentRss.generateRss(configuration, tracker.getTrackedTorrents());
+		if (modifyTrackerAnnounceList) {
+		    // Publish RSS file with tracked torrent files
+		    torrentRss.generateRss(configuration, tracker.getTrackedTorrents());
+		}
 		// If no more tracker torrent stop the tracker
 		if (tracker.getTrackedTorrents().size() == 0) {
 		    stopTracker();
@@ -130,6 +138,7 @@ public class FreeboxFilePusherRunnable implements Runnable {
 		torrent = Torrent.create(file, announceURI, creator);
 	    }
 	    torrent.save(fos);
+	    LOGGER.info("Create torrent file: {}", torrentFile.getPath());
 	} catch (URISyntaxException | InterruptedException | IOException e) {
 	    LOGGER.error("Cannot create torrent file:" + e.getMessage(), e);
 	}
@@ -174,6 +183,7 @@ public class FreeboxFilePusherRunnable implements Runnable {
 	    final String trackerIp = configuration.getProperty("tracker.ip", InetAddress.getLocalHost().getHostName());
 	    tracker = new Tracker(new InetSocketAddress(trackerIp, Integer.valueOf(trackerPort)), "FreeboxFilePusher");
 	    tracker.start();
+	    LOGGER.info("Tracker starded {}:{}", trackerIp, trackerPort);
 	}
     }
 
@@ -184,6 +194,7 @@ public class FreeboxFilePusherRunnable implements Runnable {
 	if (tracker != null) {
 	    tracker.stop();
 	    tracker = null;
+	    LOGGER.info("Tracker stoped");
 	}
     }
 

@@ -3,9 +3,11 @@
  */
 package eu.gaki.ffp;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -15,8 +17,8 @@ import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonController;
 import org.apache.commons.daemon.DaemonInitException;
-
-import com.turn.ttorrent.tracker.Tracker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The Class FreeboxFilePusher.
@@ -24,6 +26,9 @@ import com.turn.ttorrent.tracker.Tracker;
  * @author Pilou
  */
 public class FreeboxFilePusher implements Daemon {
+
+    /** The Constant LOGGER. */
+    private static final Logger LOGGER = LoggerFactory.getLogger(FreeboxFilePusher.class);
 
     /** The Constant DEFAULT_REPEAT_INTERVAL. */
     private static final String DEFAULT_REPEAT_INTERVAL = "600";
@@ -34,15 +39,11 @@ public class FreeboxFilePusher implements Daemon {
     /** The configuration. */
     private final Properties configuration = new Properties();
 
-    /** The tracker. */
-    private Tracker tracker;
-
     /**
      * {@inheritDoc}
      */
     @Override
-    public void init(final DaemonContext context) throws DaemonInitException,
-    Exception {
+    public void init(final DaemonContext context) throws DaemonInitException, Exception {
 	/*
 	 * Construct objects and initialize variables here.
 	 * You can access the command line arguments that would normally be passed to your main()
@@ -50,18 +51,61 @@ public class FreeboxFilePusher implements Daemon {
 	 */
 	final String[] args = context.getArguments();
 
-	String propertiesfileLocation = "/freeboxFilePusher.properties";
+	// Load configuration file
+	loadConfigurationFile(args);
+
+	// Create executor
+	watchExecutor = Executors.newSingleThreadScheduledExecutor();
+    }
+
+    /**
+     * Load configuration file.
+     *
+     * @param args
+     *            the args
+     * @throws FileNotFoundException
+     *             the file not found exception
+     * @throws IOException
+     *             Signals that an I/O exception has occurred.
+     */
+    private void loadConfigurationFile(final String[] args) throws IOException {
+	String propertiesfileLocation = "freeboxFilePusher.properties";
 	if (args != null && args.length == 1) {
 	    propertiesfileLocation = args[0];
 	}
-	final InputStream configurationInputStream = getClass().getResourceAsStream(propertiesfileLocation);
-	if (configurationInputStream != null) {
-	    configuration.load(configurationInputStream);
+	try (InputStream configurationInputStream = getConfigurationInputStream(propertiesfileLocation)) {
+	    // Try to load from disk
+	    if (configurationInputStream != null) {
+		configuration.load(configurationInputStream);
+	    }
+	} catch (final IOException e) {
+	    LOGGER.error("Cannot load configuration file: " + e.getMessage(), e);
+	    throw e;
 	}
-	watchExecutor = Executors.newSingleThreadScheduledExecutor();
-	final String trackerPort = configuration.getProperty("tracker.port", "6969");
-	final String trackerIp = configuration.getProperty("tracker.ip", InetAddress.getLocalHost().getHostName());
-	tracker = new Tracker(new InetSocketAddress(trackerIp,Integer.valueOf(trackerPort)), "FreeboxFilePusher");
+    }
+
+    /**
+     * Gets the configuration input stream.
+     *
+     * @param configurationInputStream
+     *            the configuration input stream
+     * @param propertiesfileLocation
+     *            the propertiesfile location
+     * @return the configuration input stream
+     * @throws FileNotFoundException
+     *             the file not found exception
+     */
+    private InputStream getConfigurationInputStream(final String propertiesfileLocation)
+	    throws FileNotFoundException {
+	InputStream configurationInputStream = null;
+	final File diskFile = new File(propertiesfileLocation);
+	if (diskFile.isFile()) {
+	    configurationInputStream = new FileInputStream(diskFile);
+	} else if (getClass().getResourceAsStream(propertiesfileLocation) != null) {
+	    // Try to load from classpath
+	    configurationInputStream = getClass().getResourceAsStream(propertiesfileLocation);
+	}
+	return configurationInputStream;
     }
 
     /**
@@ -69,9 +113,10 @@ public class FreeboxFilePusher implements Daemon {
      */
     @Override
     public void start() throws Exception {
-	final String repeatInterval = configuration.getProperty("repeat.interval.seconds", DEFAULT_REPEAT_INTERVAL);
-	watchExecutor.scheduleWithFixedDelay(new FreeboxFilePusherRunnable(configuration, tracker), 1, Long.valueOf(repeatInterval), TimeUnit.SECONDS);
-	tracker.start();
+	final String repeatInterval = configuration
+		.getProperty("folder.scan.interval.seconds", DEFAULT_REPEAT_INTERVAL);
+	watchExecutor.scheduleWithFixedDelay(new FreeboxFilePusherRunnable(configuration), 10,
+		Long.valueOf(repeatInterval), TimeUnit.SECONDS);
     }
 
     /**
@@ -80,7 +125,6 @@ public class FreeboxFilePusher implements Daemon {
     @Override
     public void stop() throws Exception {
 	watchExecutor.shutdown();
-	tracker.stop();
     }
 
     /**
@@ -88,7 +132,6 @@ public class FreeboxFilePusher implements Daemon {
      */
     @Override
     public void destroy() {
-	tracker = null;
 	watchExecutor = null;
     }
 
@@ -111,7 +154,7 @@ public class FreeboxFilePusher implements Daemon {
 	    }
 	    @Override
 	    public String[] getArguments() {
-		return null;
+		return args;
 	    }
 	};
 	test.init(context);

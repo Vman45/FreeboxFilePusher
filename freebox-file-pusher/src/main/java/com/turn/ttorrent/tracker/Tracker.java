@@ -15,6 +15,7 @@
  */
 package com.turn.ttorrent.tracker;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -120,7 +121,7 @@ public class Tracker {
     public URL getAnnounceUrl() {
 	try {
 	    return new URL("http",
- ("" + this.address.getAddress().getCanonicalHostName()).replace("/", ""), // .getCanonicalHostName(),
+		    ("" + this.address.getAddress().getCanonicalHostName()).replace("/", ""),
 		    this.address.getPort(),
 		    Tracker.ANNOUNCE_URL);
 	} catch (final MalformedURLException mue) {
@@ -176,6 +177,40 @@ public class Tracker {
      */
     public Collection<TrackedTorrent> getTrackedTorrents() {
 	return torrents.values();
+    }
+
+    /**
+     * Checks if a torrent is already tracked.
+     *
+     * @param torrent
+     *            the torrent
+     * @return true, if is tracked
+     */
+    public boolean isTracked(final File torrentFile) {
+	boolean result = false;
+
+	for (final TrackedTorrent torrent : getTrackedTorrents()) {
+	    if (torrent.getSeederClient() != null) {
+		final File currentTorrentFile = torrent.getSeederClient().getTorrentFile();
+		if (torrentFile.equals(currentTorrentFile)) {
+		    result = true;
+		    break;
+		}
+	    }
+	}
+
+	return result;
+    }
+
+    /**
+     * Checks if a torrent is already tracked.
+     *
+     * @param torrent
+     *            the torrent
+     * @return true, if is tracked
+     */
+    public boolean isTracked(final TrackedTorrent torrent) {
+	return this.torrents.get(torrent.getHexInfoHash()) != null;
     }
 
     /**

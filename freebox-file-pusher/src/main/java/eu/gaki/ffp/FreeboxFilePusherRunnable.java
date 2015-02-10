@@ -4,10 +4,17 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Properties;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.turn.ttorrent.common.Torrent;
 import com.turn.ttorrent.tracker.TrackedTorrent;
@@ -18,14 +25,17 @@ import com.turn.ttorrent.tracker.Tracker;
  */
 public class FreeboxFilePusherRunnable implements Runnable {
 
+    /** The Constant LOGGER. */
+    private static final Logger LOGGER = LoggerFactory.getLogger(FreeboxFilePusherRunnable.class);
+
     /** The configuration. */
     private final Properties configuration;
 
-    /** The tracker. */
-    private final Tracker tracker;
-
     /** The torrent rss. */
     private final TorrentRss torrentRss = new TorrentRss();
+
+    /** The tracker. */
+    private Tracker tracker;
 
     /**
      * Instantiates a new freebox file pusher runnable.
@@ -35,9 +45,8 @@ public class FreeboxFilePusherRunnable implements Runnable {
      * @param tracker
      *            the tracker
      */
-    public FreeboxFilePusherRunnable(final Properties configuration, final Tracker tracker) {
+    public FreeboxFilePusherRunnable(final Properties configuration) {
 	this.configuration = configuration;
-	this.tracker = tracker;
     }
 
     /**
@@ -59,21 +68,36 @@ public class FreeboxFilePusherRunnable implements Runnable {
 			    // Create torrent file
 			    torrentFile = createTorrentFile(dataFile);
 			}
-			// Add file to tracker
-			final TrackedTorrent torrent = TrackedTorrent.load(torrentFile);
-			torrent.setSeederRunnable(new InitialSeederRunnable(configuration, tracker, torrent, torrentFile, dataFile));
-			tracker.announce(torrent);
+			startTracker();
+			if (tracker != null && !tracker.isTracked(torrentFile)) {
+			    // Add file to tracker
+			    final TrackedTorrent torrent = TrackedTorrent.load(torrentFile);
+			    torrent.setSeederClient(new SeederClient(configuration, torrent, torrentFile, dataFile));
+			    tracker.announce(torrent);
+			}
 		    }
 		}
 	    }
 
+	    if (tracker != null) {
+		// Remove announce of deleted torrent
+		for (final TrackedTorrent torrent : tracker.getTrackedTorrents()) {
+		    final File torrentFile = torrent.getSeederClient().getTorrentFile();
+		    if (!torrentFile.isFile()) {
+			tracker.remove(torrent);
+		    }
+		}
+		// Publish RSS file with tracked torrent files
+		torrentRss.generateRss(configuration, tracker.getTrackedTorrents());
+		// If no more tracker torrent stop the tracker
+		if (tracker.getTrackedTorrents().size() == 0) {
+		    stopTracker();
+		}
+	    }
 
 	} catch (final Exception e) {
-	    // Throwed exception will stop the ScheduledExecutorService
-	    e.printStackTrace();
+	    LOGGER.error("Cannot watch folder:" + e.getMessage(), e);
 	}
-	// Publish RSS file with torrent files
-	torrentRss.generateRss(configuration, tracker.getTrackedTorrents());
     }
 
     /**
@@ -85,14 +109,15 @@ public class FreeboxFilePusherRunnable implements Runnable {
      */
     private File createTorrentFile(final File file) {
 	File torrentFile = null;
-	OutputStream fos = null;
-	try {
-	    torrentFile = computeTorrentFileName(file);
-	    fos = new FileOutputStream(torrentFile);
+	torrentFile = computeTorrentFileName(file);
 
-	    final URI announceURI = tracker.getAnnounceUrl().toURI();
+	try (OutputStream fos = new FileOutputStream(torrentFile)) {
+	    final String trackerAnnounceUrl = configuration.getProperty("tracker.announce.url",
+		    "http://unkown:6969/announce");
 
-	    final String creator = String.format("%s (ttorrent)",
+	    final URI announceURI = new URI(trackerAnnounceUrl);
+
+	    final String creator = String.format("%s (FreeboxFilePusher)",
 		    System.getProperty("user.name"));
 
 	    Torrent torrent = null;
@@ -106,15 +131,7 @@ public class FreeboxFilePusherRunnable implements Runnable {
 	    }
 	    torrent.save(fos);
 	} catch (URISyntaxException | InterruptedException | IOException e) {
-	    e.printStackTrace();
-	} finally {
-	    if (fos != null) {
-		try {
-		    fos.close();
-		} catch (final IOException e) {
-		    e.printStackTrace();
-		}
-	    }
+	    LOGGER.error("Cannot create torrent file:" + e.getMessage(), e);
 	}
 
 	return torrentFile;
@@ -129,10 +146,45 @@ public class FreeboxFilePusherRunnable implements Runnable {
      */
     private File computeTorrentFileName(final File file) {
 	File torrentFile;
-	torrentFile = new File(
-		configuration.getProperty("torrent.file.folder"),
-		file.getName() + ".torrent");
+
+	String fileNameUrl;
+	try {
+	    fileNameUrl = URLEncoder.encode(file.getName(), "UTF-8");
+	} catch (final UnsupportedEncodingException e) {
+	    LOGGER.error("Error when URL encode the file name. Fallback without URL encode", e);
+	    fileNameUrl = file.getName();
+	}
+
+	torrentFile = new File(configuration.getProperty("torrent.file.folder", "www-data"), fileNameUrl
+		+ configuration.getProperty("torrent.extention", ".torrent"));
 	return torrentFile;
+    }
+
+    /**
+     * Start the tracker if not already started.
+     *
+     * @throws NumberFormatException
+     *             the number format exception
+     * @throws IOException
+     *             Signals that an I/O exception has occurred.
+     */
+    private synchronized void startTracker() throws NumberFormatException, IOException {
+	if (tracker == null) {
+	    final String trackerPort = configuration.getProperty("tracker.port", "6969");
+	    final String trackerIp = configuration.getProperty("tracker.ip", InetAddress.getLocalHost().getHostName());
+	    tracker = new Tracker(new InetSocketAddress(trackerIp, Integer.valueOf(trackerPort)), "FreeboxFilePusher");
+	    tracker.start();
+	}
+    }
+
+    /**
+     * Stop the tracker if started.
+     */
+    private synchronized void stopTracker() {
+	if (tracker != null) {
+	    tracker.stop();
+	    tracker = null;
+	}
     }
 
 }

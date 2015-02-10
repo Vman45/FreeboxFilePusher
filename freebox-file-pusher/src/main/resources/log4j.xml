@@ -9,9 +9,13 @@
 		  value="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n" />
 	    </layout>
 	</appender>
+	
+	<logger name="eu.gaki.ffp">
+		<level value="INFO" />
+	</logger>
  
 	<root>
-		<level value="ERROR" />
+		<level value="WARN" />
 		<appender-ref ref="console" />
 	</root>
  

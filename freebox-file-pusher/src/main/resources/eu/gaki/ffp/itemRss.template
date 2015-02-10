@@ -1,7 +1,7 @@
      <item>
       <title>${file.name}</title>
       <guid isPermaLink="true">${file.url}</guid>
-      <pubDate>Mon, 22 Jul 2013 00:12:38 +0200</pubDate>
+      <pubDate>${file.date}</pubDate>
       <link>${file.url}</link>
       <description><![CDATA[Push by Freebox File Pusher]]></description>
       <enclosure url="${file.url}" length="${file.size}" type="application/x-bittorrent"/>

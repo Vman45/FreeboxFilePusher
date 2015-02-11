@@ -4,12 +4,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Properties;
@@ -158,13 +156,7 @@ public class FreeboxFilePusherRunnable implements Runnable {
     private File computeTorrentFileName(final File file) {
 	File torrentFile;
 
-	String fileNameUrl;
-	try {
-	    fileNameUrl = URLEncoder.encode(file.getName(), "UTF-8");
-	} catch (final UnsupportedEncodingException e) {
-	    LOGGER.error("Error when URL encode the file name. Fallback without URL encode", e);
-	    fileNameUrl = file.getName();
-	}
+	final String fileNameUrl = file.getName();
 
 	torrentFile = new File(configuration.getProperty("torrent.file.folder", "www-data"), fileNameUrl
 		+ configuration.getProperty("torrent.extention", ".torrent"));

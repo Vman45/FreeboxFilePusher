@@ -111,7 +111,7 @@ public class TrackerService implements Container {
 	// Reject non-announce requests
 	if (!Tracker.ANNOUNCE_URL.equals(request.getPath().toString())) {
 	    response.setCode(404);
-	    response.setText("Not Found");
+	    response.setDescription("Not Found");
 	    return;
 	}
 
@@ -143,8 +143,8 @@ public class TrackerService implements Container {
     private void process(final Request request, final Response response,
 	    final OutputStream body) throws IOException {
 	// Prepare the response headers.
-	response.set("Content-Type", "text/plain");
-	response.set("Server", this.version);
+	response.setContentType("text/plain");
+	response.setDescription(this.version);
 	response.setDate("Date", System.currentTimeMillis());
 
 	/**
@@ -169,21 +169,22 @@ public class TrackerService implements Container {
 	if (torrent == null) {
 	    logger.warn("Requested torrent hash was: {}",
 		    announceRequest.getHexInfoHash());
-	    this.serveError(response, body, Status.BAD_REQUEST,
+	    // this.serveError(response, body, Status.BAD_REQUEST,
+	    // ErrorMessage.FailureReason.UNKNOWN_TORRENT);
+	    this.serveError(response, body, Status.OK,
 		    ErrorMessage.FailureReason.UNKNOWN_TORRENT);
 	    return;
 	}
 
 	AnnounceRequestMessage.RequestEvent event = announceRequest.getEvent();
 	final String peerId = announceRequest.getHexPeerId();
+	final TrackedPeer currentPeer = torrent.getPeer(peerId);
 
 	// When no event is specified, it's a periodic update while the client
 	// is operating. If we don't have a peer for this announce, it means
 	// the tracker restarted while the client was running. Consider this
 	// announce request as a 'started' event.
-	if ((event == null ||
-		AnnounceRequestMessage.RequestEvent.NONE.equals(event)) &&
-		torrent.getPeer(peerId) == null) {
+	if ((event == null || AnnounceRequestMessage.RequestEvent.NONE.equals(event)) && currentPeer == null) {
 	    event = AnnounceRequestMessage.RequestEvent.STARTED;
 	}
 
@@ -192,10 +193,9 @@ public class TrackerService implements Container {
 	// previous 'started' announce request should have been made by the
 	// client that would have had us register that peer on the torrent this
 	// request refers to.
-	if (event != null && torrent.getPeer(peerId) == null &&
+	if (event != null && currentPeer == null &&
 		!AnnounceRequestMessage.RequestEvent.STARTED.equals(event)) {
-	    // this.serveError(response, body, Status.BAD_REQUEST, ErrorMessage.FailureReason.MISSING_PEER_ID);//
-	    // ErrorMessage.FailureReason.INVALID_EVENT
+	    this.serveError(response, body, Status.OK, ErrorMessage.FailureReason.INVALID_EVENT);
 	    return;
 	}
 
@@ -211,7 +211,7 @@ public class TrackerService implements Container {
 		    announceRequest.getDownloaded(),
 		    announceRequest.getLeft());
 	} catch (final IllegalArgumentException iae) {
-	    this.serveError(response, body, Status.BAD_REQUEST,
+	    this.serveError(response, body, Status.OK,
 		    ErrorMessage.FailureReason.INVALID_EVENT);
 	    return;
 	}
@@ -317,7 +317,7 @@ public class TrackerService implements Container {
     private void serveError(final Response response, final OutputStream body,
 	    final Status status, final HTTPTrackerErrorMessage error) throws IOException {
 	response.setCode(status.getCode());
-	response.setText(status.getDescription());
+	response.setDescription(status.getDescription());
 	logger.warn("Could not process announce request ({}) !",
 		error.getReason());
 

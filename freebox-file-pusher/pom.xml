@@ -51,9 +51,10 @@
 
 		<dependency>
 			<groupId>org.simpleframework</groupId>
-			<artifactId>simple</artifactId>
-			<version>4.1.21</version>
+			<artifactId>simple-http</artifactId>
+			<version>6.0.1</version>
 		</dependency>
+
 
 		<dependency>
 			<groupId>org.slf4j</groupId>

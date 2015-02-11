@@ -27,6 +27,7 @@ import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.simpleframework.http.core.ContainerSocketProcessor;
 import org.simpleframework.transport.connect.Connection;
 import org.simpleframework.transport.connect.SocketConnection;
 import org.slf4j.Logger;
@@ -57,8 +58,7 @@ public class Tracker {
     public static final int DEFAULT_TRACKER_PORT = 6969;
 
     /** Default server name and version announced by the tracker. */
-    public static final String DEFAULT_VERSION_STRING =
-	    "BitTorrent Tracker (ttorrent)";
+    public static final String DEFAULT_VERSION_STRING = "Freebox File Pusher (ttorrent)";
 
     private final Connection connection;
     private final InetSocketAddress address;
@@ -107,8 +107,7 @@ public class Tracker {
 	this.address = address;
 
 	this.torrents = new ConcurrentHashMap<String, TrackedTorrent>();
-	this.connection = new SocketConnection(
-		new TrackerService(version, this.torrents));
+	this.connection = new SocketConnection(new ContainerSocketProcessor(new TrackerService(version, this.torrents)));
     }
 
     /**

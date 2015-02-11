@@ -10,6 +10,7 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Properties;
 
@@ -85,12 +86,13 @@ public class FreeboxFilePusherRunnable implements Runnable {
 
 	    if (tracker != null) {
 		// Remove announce of deleted torrent
-		for (final TrackedTorrent torrent : tracker.getTrackedTorrents()) {
-		    final File torrentFile = torrent.getSeederClient().getTorrentFile();
-		    if (!torrentFile.isFile()) {
+		for (final TrackedTorrent torrent : new ArrayList<TrackedTorrent>(tracker.getTrackedTorrents())) {
+		    final SeederClient seederClient = torrent.getSeederClient();
+		    if (seederClient == null || seederClient.getTorrentFile() == null
+			    || !seederClient.getTorrentFile().isFile()) {
 			tracker.remove(torrent);
 			modifyTrackerAnnounceList = true;
-			LOGGER.info("Remove announce file: {}", torrentFile.getPath());
+			LOGGER.info("Remove announce file: {}", torrent.getName());
 		    }
 		}
 		if (modifyTrackerAnnounceList) {

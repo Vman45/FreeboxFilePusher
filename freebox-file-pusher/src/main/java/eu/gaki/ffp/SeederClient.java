@@ -124,14 +124,14 @@ public class SeederClient {
      * @param torrent
      *            the torrent
      */
-    public synchronized void enableDisableSeeding(final TrackedTorrent torrent) {
+    public void enableDisableSeeding(final TrackedTorrent torrent) {
 	// Enable disable seeder client on demand
 	// A peer want to download the torrent
-	if (torrent.leechers() > 0 && torrent.seeders() == 0) {
+	if (torrent.leechers() > 0 && seeder == null) {
 	    LOGGER.info(torrentFile.getPath() + ": {} leechers, {} seeders", torrent.leechers(), torrent.seeders());
 	    // No seeder for this torrent, we create a client seeder
 	    startSeeding();
-	} else if (torrent.leechers() == 0) {
+	} else if (torrent.leechers() == 0 && seeder != null) {
 	    LOGGER.info(torrentFile.getPath() + ": {} leechers, {} seeders", torrent.leechers(), torrent.seeders());
 	    // No more leecher
 	    if (noLeecherDate == null) {

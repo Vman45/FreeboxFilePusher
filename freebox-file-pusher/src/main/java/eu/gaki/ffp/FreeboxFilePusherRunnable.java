@@ -54,7 +54,7 @@ public class FreeboxFilePusherRunnable implements Runnable {
     @Override
     public void run() {
 	try {
-	    boolean modifyTrackerAnnounceList = false;
+	    boolean modifyAnnounceList = false;
 
 	    // Watch new files and folder in watched folder
 	    final String folderLocation = configuration.getProperty(
@@ -64,20 +64,7 @@ public class FreeboxFilePusherRunnable implements Runnable {
 		if (folder.isDirectory()) {
 		    final File[] list = folder.listFiles();
 		    for (final File dataFile : list) {
-			File torrentFile = computeTorrentFileName(dataFile);
-			if (!torrentFile.exists()) {
-			    // Create torrent file
-			    torrentFile = createTorrentFile(dataFile);
-			}
-			startTracker();
-			if (tracker != null && !tracker.isTracked(torrentFile)) {
-			    // Add file to tracker
-			    final TrackedTorrent torrent = TrackedTorrent.load(torrentFile);
-			    torrent.setSeederClient(new SeederClient(configuration, torrent, torrentFile, dataFile));
-			    tracker.announce(torrent);
-			    modifyTrackerAnnounceList = true;
-			    LOGGER.info("Announce file: {}", torrentFile.getPath());
-			}
+			modifyAnnounceList = shareByTorrent(dataFile);
 		    }
 		}
 	    }
@@ -89,11 +76,11 @@ public class FreeboxFilePusherRunnable implements Runnable {
 		    if (seederClient == null || seederClient.getTorrentFile() == null
 			    || !seederClient.getTorrentFile().isFile()) {
 			tracker.remove(torrent);
-			modifyTrackerAnnounceList = true;
+			modifyAnnounceList = true;
 			LOGGER.info("Remove announce file: {}", torrent.getName());
 		    }
 		}
-		if (modifyTrackerAnnounceList) {
+		if (modifyAnnounceList) {
 		    // Publish RSS file with tracked torrent files
 		    torrentRss.generateRss(configuration, tracker.getTrackedTorrents());
 		}
@@ -106,6 +93,34 @@ public class FreeboxFilePusherRunnable implements Runnable {
 	} catch (final Exception e) {
 	    LOGGER.error("Cannot watch folder:" + e.getMessage(), e);
 	}
+    }
+
+    /**
+     * Share by torrent.
+     *
+     * @param dataFile
+     *            the data file
+     * @return true, if successful
+     * @throws IOException
+     *             Signals that an I/O exception has occurred.
+     */
+    private boolean shareByTorrent(final File dataFile) throws IOException {
+	boolean modifyTrackerAnnounceList = false;
+	File torrentFile = computeTorrentFileName(dataFile);
+	if (!torrentFile.exists()) {
+	    // Create torrent file
+	    torrentFile = createTorrentFile(dataFile);
+	}
+	startTracker();
+	if (tracker != null && !tracker.isTracked(torrentFile)) {
+	    // Add file to tracker
+	    final TrackedTorrent torrent = TrackedTorrent.load(torrentFile);
+	    torrent.setSeederClient(new SeederClient(configuration, torrent, torrentFile, dataFile));
+	    tracker.announce(torrent);
+	    modifyTrackerAnnounceList = true;
+	    LOGGER.info("Announce file: {}", torrentFile.getPath());
+	}
+	return modifyTrackerAnnounceList;
     }
 
     /**

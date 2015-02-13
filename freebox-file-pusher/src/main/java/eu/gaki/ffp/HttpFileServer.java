@@ -95,7 +95,7 @@ public class HttpFileServer {
      *             Signals that an I/O exception has occurred.
      */
     public static void main(final String[] args) throws NumberFormatException, IOException {
-	final HttpFileServer httpFileServer = new HttpFileServer(new InetSocketAddress("127.0.0.1",
+	final HttpFileServer httpFileServer = new HttpFileServer(new InetSocketAddress("192.168.1.42",
 		Integer.valueOf("80")));
 	httpFileServer.start();
     }

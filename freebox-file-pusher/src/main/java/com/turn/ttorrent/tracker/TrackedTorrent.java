@@ -34,7 +34,7 @@ import com.turn.ttorrent.common.Peer;
 import com.turn.ttorrent.common.Torrent;
 import com.turn.ttorrent.common.protocol.TrackerMessage.AnnounceRequestMessage.RequestEvent;
 
-import eu.gaki.ffp.SeederClient;
+import eu.gaki.ffp.bittorrent.SeederClient;
 
 
 /**

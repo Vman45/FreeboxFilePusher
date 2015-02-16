@@ -1,12 +1,17 @@
 package eu.gaki.ffp.http;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.simpleframework.http.core.ContainerSocketProcessor;
 import org.simpleframework.transport.connect.SocketConnection;
 import org.slf4j.Logger;
@@ -28,7 +33,7 @@ public class HttpFileServer {
 
 	/** The address. */
 	private final InetSocketAddress address;
-	
+
 	/** The files to serve. */
 	private final Map<String, Path> filesToServe = new HashMap<>();
 
@@ -39,10 +44,11 @@ public class HttpFileServer {
 	 *            the address
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
+	 * @throws NoSuchAlgorithmException
 	 */
 	public HttpFileServer(final InetSocketAddress address) throws IOException {
 		this.address = address;
-		this.connection = new SocketConnection(new ContainerSocketProcessor(new HttpFileServerService()));
+		this.connection = new SocketConnection(new ContainerSocketProcessor(new HttpFileServerService(this)));
 	}
 
 	/**
@@ -54,7 +60,6 @@ public class HttpFileServer {
 			this.server.setName("HTTP file server: " + this.address.getPort());
 			this.server.start();
 		}
-
 	}
 
 	/**
@@ -67,7 +72,92 @@ public class HttpFileServer {
 		} catch (final IOException ioe) {
 			LOGGER.error("Could not stop the HTTP file server: {}!", ioe.getMessage());
 		}
+	}
 
+	/**
+	 * Adds the file to serve.
+	 *
+	 * @param path
+	 *            the file to serve
+	 * @return the file identifier
+	 */
+	public String addFileToServe(Path path) {
+		String key = computeKey(path);
+		filesToServe.put(key, path);
+		return key;
+	}
+
+	/**
+	 * Compute key.
+	 *
+	 * @param path
+	 *            the path
+	 * @return the string
+	 * @throws UnsupportedEncodingException
+	 *             the unsupported encoding exception
+	 */
+	private String computeKey(Path path) {
+		String pathString = path.toAbsolutePath().toString();
+		String key;
+		try {
+			key = DigestUtils.md5Hex(pathString.getBytes("UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			LOGGER.error("Cannot compute the key for file: " + path, e);
+			key = Integer.toString(pathString.hashCode());
+		}
+		return key;
+	}
+
+	/**
+	 * Removes the file to serve.
+	 *
+	 * @param identifier
+	 *            the identifier
+	 * @return the path
+	 */
+	public Path removeFileToServe(Path path) {
+		return filesToServe.remove(computeKey(path));
+	}
+
+	/**
+	 * Gets the file to serve.
+	 *
+	 * @param identifier
+	 *            the identifier
+	 * @return the file to serve
+	 */
+	public Path getFileToServe(String identifier) {
+		return filesToServe.get(identifier);
+	}
+
+	/**
+	 * Checks if is file to serve empty.
+	 *
+	 * @return true, if is file to serve empty
+	 */
+	public boolean isFileToServeEmpty() {
+		return filesToServe.isEmpty();
+	}
+
+	/**
+	 * Gets the files to serve.
+	 *
+	 * @return the files to serve
+	 */
+	public Set<Map.Entry<String, Path>> getFilesToServe() {
+		return new HashSet<java.util.Map.Entry<String, Path>>(filesToServe.entrySet());
+	}
+
+	/**
+	 * Checks if is file served.
+	 *
+	 * @param path
+	 *            the path
+	 * @return true, if is file served
+	 */
+	public boolean isFileServed(Path path) {
+		String key = computeKey(path);
+		return filesToServe.containsKey(key);
 	}
 
 	/**
@@ -92,17 +182,29 @@ public class HttpFileServer {
 	}
 
 	/**
-	 * The main method.
+	 * Removes the and delete file to serve.
 	 *
-	 * @param args
-	 *            the arguments
-	 * @throws NumberFormatException
-	 *             the number format exception
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
+	 * @param file
+	 *            the file
 	 */
-	public static void main(final String[] args) throws NumberFormatException, IOException {
-		final HttpFileServer httpFileServer = new HttpFileServer(new InetSocketAddress("192.168.1.42", Integer.valueOf("80")));
-		httpFileServer.start();
+	public void removeAndDeleteFileToServe(Path path) {
+		removeFileToServe(path);
+		try {
+			Files.deleteIfExists(path);
+		} catch (IOException e) {
+			LOGGER.error("Cannot delete the file.", e);
+		}
+
+		// this.filesToServe.forEach((key, value) -> {
+		// if (value.equals(path)) {
+		// removeFileToServe(key);
+		// try {
+		// Files.deleteIfExists(value);
+		// } catch (IOException e) {
+		// LOGGER.error("Cannot delete the file.", e);
+		// }
+		// }
+		// });
 	}
+
 }

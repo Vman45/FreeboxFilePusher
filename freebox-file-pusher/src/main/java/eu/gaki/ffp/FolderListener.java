@@ -1,6 +1,5 @@
 package eu.gaki.ffp;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
@@ -20,11 +19,26 @@ public interface FolderListener {
 	/**
 	 * Folder file.
 	 *
-	 * @param file
-	 *            the file
-	 * @param folder
-	 *            the folder
+	 * @param folderScanned the folder scanned
+	 * @param path the path
+	 * @return the list
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	List<RssFileItem> folderFile(Path dataFile, Path folder) throws IOException;
+	List<RssFileItem> folderFile(Path folderScanned, Path path) throws IOException;
+
+	/**
+	 * Ending.
+	 *
+	 * @param folderScanned the folder scanned
+	 */
+	void ending(Path folderScanned);
+
+	/**
+	 * Beginning.
+	 *
+	 * @param folderScanned the folder scanned
+	 * @return the object
+	 */
+	void beginning(Path folderScanned);
 
 }

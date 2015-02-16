@@ -1,10 +1,8 @@
 package eu.gaki.ffp;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryIteratorException;
 import java.nio.file.DirectoryStream;
-import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,10 +33,7 @@ public class FoldersWatcherRunnable implements Runnable {
 	/**
 	 * Instantiates a new freebox file pusher runnable.
 	 *
-	 * @param configuration
-	 *            the configuration
-	 * @param tracker
-	 *            the tracker
+	 * @param configuration            the configuration
 	 */
 	public FoldersWatcherRunnable(final Properties configuration) {
 		this.configuration = configuration;
@@ -57,11 +52,12 @@ public class FoldersWatcherRunnable implements Runnable {
 			final String folderLocation = configuration.getProperty("folders.to.watch", null);
 			if (folderLocation != null) {
 				Path folder = FileSystems.getDefault().getPath(folderLocation);
+				listener.forEach(listener -> listener.beginning(folder));
 				
 				try (DirectoryStream<Path> stream = Files.newDirectoryStream(folder)) {
 				    for (Path file: stream) {
 				    	for (FolderListener listener : listener) {
-							List<RssFileItem> listenerRssFileItems = listener.folderFile(file, folder);
+							List<RssFileItem> listenerRssFileItems = listener.folderFile(folder, file);
 							if (listenerRssFileItems != null) {
 								rssFileItems.addAll(listenerRssFileItems);
 							}
@@ -70,12 +66,11 @@ public class FoldersWatcherRunnable implements Runnable {
 				} catch (IOException | DirectoryIteratorException e) {
 				    LOGGER.error(e.getMessage(),e);;
 				}
+				listener.forEach(listener -> listener.ending(folder));
 			}
 			
-			if (!rssFileItems.isEmpty()) {
-				rssFileGenerator.generateRss(configuration, rssFileItems);
-			}
-
+			rssFileGenerator.generateRss(configuration, rssFileItems);
+			
 		} catch (final Exception e) {
 			LOGGER.error("Cannot watch folder:" + e.getMessage(), e);
 		}

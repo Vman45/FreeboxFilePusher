@@ -1,6 +1,7 @@
 package eu.gaki.ffp;
 
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * The Class RssFileItem.
@@ -15,6 +16,9 @@ public class RssFileItem {
 	
 	/** The date. */
 	private Date date;
+	
+	/** The size. */
+	private Long size;
 	
 	/**
 	 * Gets the name.
@@ -88,6 +92,25 @@ public class RssFileItem {
 		this.size = size;
 	}
 	
-	/** The size. */
-	private Long size;
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		boolean result = false;
+		if (obj instanceof RssFileItem) {
+			RssFileItem r = (RssFileItem) obj;
+			result = Objects.equals(name, r.name) && Objects.equals(url, r.url) && Objects.equals(date, r.date) && Objects.equals(size, r.size);
+		}
+		return result;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int hashCode() {
+		return Objects.hash(name, url, date, size);
+	}
+
 }

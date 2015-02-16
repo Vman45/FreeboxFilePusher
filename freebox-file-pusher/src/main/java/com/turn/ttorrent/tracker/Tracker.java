@@ -21,6 +21,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -185,21 +186,21 @@ public class Tracker {
      *            the torrent
      * @return true, if is tracked
      */
-    public boolean isTracked(final File torrentFile) {
-	boolean result = false;
+	public boolean isTracked(final Path torrentFile) {
+		boolean result = false;
 
-	for (final TrackedTorrent torrent : getTrackedTorrents()) {
-	    if (torrent.getSeederClient() != null) {
-		final File currentTorrentFile = torrent.getSeederClient().getTorrentFile();
-		if (torrentFile.equals(currentTorrentFile)) {
-		    result = true;
-		    break;
+		for (final TrackedTorrent torrent : getTrackedTorrents()) {
+			if (torrent.getSeederClient() != null) {
+				final Path currentTorrentFile = torrent.getSeederClient().getTorrentFile();
+				if (torrentFile.equals(currentTorrentFile)) {
+					result = true;
+					break;
+				}
+			}
 		}
-	    }
-	}
 
-	return result;
-    }
+		return result;
+	}
 
     /**
      * Checks if a torrent is already tracked.

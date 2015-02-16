@@ -1,6 +1,3 @@
-/**
- *
- */
 package eu.gaki.ffp;
 
 import java.io.File;
@@ -66,8 +63,16 @@ public class FreeboxFilePusher implements Daemon {
 		foldersWatcherRunnable = new FoldersWatcherRunnable(configuration);
 
 		// Add configured listener
-		foldersWatcherRunnable.addFolderListener(new BittorrentFolderListener(configuration));
-		foldersWatcherRunnable.addFolderListener(new HttpFolderListener(configuration));
+		String enableBittorent = configuration.getProperty("ffp.enable.bittorrent", "false");
+		String enableHttp = configuration.getProperty("ffp.enable.http", "true");
+		
+		if (Boolean.valueOf(enableBittorent)) {
+			foldersWatcherRunnable.addFolderListener(new BittorrentFolderListener(configuration));
+		}
+		
+		if (Boolean.valueOf(enableHttp)) {
+			foldersWatcherRunnable.addFolderListener(new HttpFolderListener(configuration));
+		}
 
 	}
 

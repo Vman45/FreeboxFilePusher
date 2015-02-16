@@ -26,7 +26,7 @@ public class SeederClient {
 	private final TrackedTorrent torrent;
 
 	/** The torrent file. */
-	private final File torrentFile;
+	private final Path torrentFile;
 
 	/** The data file. */
 	private final Path dataFile;
@@ -57,7 +57,7 @@ public class SeederClient {
 	 * @param dataFile
 	 *            the data file
 	 */
-	public SeederClient(final Properties configuration, final TrackedTorrent torrent, final File torrentFile, final Path dataFile) {
+	public SeederClient(final Properties configuration, final TrackedTorrent torrent, final Path torrentFile, final Path dataFile) {
 		this.configuration = configuration;
 		this.torrent = torrent;
 		this.torrentFile = torrentFile;
@@ -107,7 +107,7 @@ public class SeederClient {
 			final String deleteString = configuration.getProperty("delete.after.sending", "false");
 			if (Boolean.valueOf(deleteString)) {
 				Files.delete(dataFile);
-				torrentFile.delete();
+				Files.delete(torrentFile);
 				LOGGER.info("Delete torrent, file and remove from tracker {}. Number of client {}", torrent.getName(), totalNumberOfClient);
 			}
 		} catch (final Exception e) {
@@ -125,19 +125,19 @@ public class SeederClient {
 		// Enable disable seeder client on demand
 		// A peer want to download the torrent
 		if (torrent.leechers() > 0 && seeder == null) {
-			LOGGER.info(torrentFile.getPath() + ": {} leechers, {} seeders", torrent.leechers(), torrent.seeders());
+			LOGGER.info(torrentFile + ": {} leechers, {} seeders", torrent.leechers(), torrent.seeders());
 			// No seeder for this torrent, we create a client seeder
 			startSeeding();
 		} else if (torrent.leechers() == 0) {
 			// No more leecher
 			if (noLeecherDate == null) {
-				LOGGER.info(torrentFile.getPath() + ": {} leechers, {} seeders", torrent.leechers(), torrent.seeders());
+				LOGGER.info(torrentFile + ": {} leechers, {} seeders", torrent.leechers(), torrent.seeders());
 				noLeecherDate = new Date();
-				LOGGER.info("No more leecher for file: {}", torrentFile.getPath());
+				LOGGER.info("No more leecher for file: {}", torrentFile);
 			}
 
 			if (torrent.seeders() >= 2) {
-				LOGGER.info(torrentFile.getPath() + ": {} leechers, {} seeders", torrent.leechers(), torrent.seeders());
+				LOGGER.info(torrentFile + ": {} leechers, {} seeders", torrent.leechers(), torrent.seeders());
 				// File is sent completely
 				stopAndDelete();
 				noLeecherDate = null;
@@ -148,7 +148,7 @@ public class SeederClient {
 				// the seeder) so we wait
 				final String keepActiveString = configuration.getProperty("torrent.keep.seeder.active.millisecond", "600000");
 				if (System.currentTimeMillis() > noLeecherDate.getTime() + Long.valueOf(keepActiveString)) {
-					LOGGER.info(torrentFile.getPath() + ": {} leechers, {} seeders", torrent.leechers(), torrent.seeders());
+					LOGGER.info(torrentFile + ": {} leechers, {} seeders", torrent.leechers(), torrent.seeders());
 					stopSeeding();
 					noLeecherDate = null;
 				}
@@ -171,7 +171,7 @@ public class SeederClient {
 	 *
 	 * @return the torrent file
 	 */
-	public File getTorrentFile() {
+	public Path getTorrentFile() {
 		return torrentFile;
 	}
 

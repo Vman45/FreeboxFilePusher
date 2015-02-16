@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -41,6 +42,9 @@ public class FreeboxFilePusher implements Daemon {
 
 	/** The folders watcher runnable. */
 	private FoldersWatcherRunnable foldersWatcherRunnable;
+	
+	/** The rss file generator. */
+	private RssFileGenerator rssFileGenerator;
 
 	/**
 	 * {@inheritDoc}
@@ -59,8 +63,13 @@ public class FreeboxFilePusher implements Daemon {
 		// Create executor
 		watchExecutor = Executors.newSingleThreadScheduledExecutor();
 
+		// Create Rss generator
+		rssFileGenerator = new RssFileGenerator();
+		// Initialize the rss feed to empty
+		rssFileGenerator.generateRss(configuration, new ArrayList<RssFileItem>());
+		
 		// Create foldersWatcherRunnable
-		foldersWatcherRunnable = new FoldersWatcherRunnable(configuration);
+		foldersWatcherRunnable = new FoldersWatcherRunnable(configuration, rssFileGenerator);
 
 		// Add configured listener
 		String enableBittorent = configuration.getProperty("ffp.enable.bittorrent", "false");

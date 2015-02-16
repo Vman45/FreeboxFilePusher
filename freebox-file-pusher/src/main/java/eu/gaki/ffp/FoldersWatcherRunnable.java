@@ -28,15 +28,17 @@ public class FoldersWatcherRunnable implements Runnable {
 	private List<FolderListener> listener = new ArrayList<>();
 
 	/** The torrent rss. */
-	private final RssFileGenerator rssFileGenerator = new RssFileGenerator();
+	private final RssFileGenerator rssFileGenerator;
 	
 	/**
 	 * Instantiates a new freebox file pusher runnable.
 	 *
 	 * @param configuration            the configuration
+	 * @param rssFileGenerator the rss file generator
 	 */
-	public FoldersWatcherRunnable(final Properties configuration) {
+	public FoldersWatcherRunnable(final Properties configuration, RssFileGenerator rssFileGenerator) {
 		this.configuration = configuration;
+		this.rssFileGenerator = rssFileGenerator;
 	}
 
 	/**

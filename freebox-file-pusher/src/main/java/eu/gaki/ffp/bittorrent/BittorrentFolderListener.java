@@ -91,7 +91,7 @@ public class BittorrentFolderListener implements FolderListener {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public List<RssFileItem> folderFile(Path folderScanned, Path path) throws IOException {
+	public Collection<RssFileItem> folderFile(Path folderScanned, Path path) throws IOException {
 		final List<RssFileItem> rssFileItems = new ArrayList<>();
 
 		// Share the file

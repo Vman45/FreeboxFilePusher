@@ -7,8 +7,11 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +51,7 @@ public class FoldersWatcherRunnable implements Runnable {
 	public void run() {
 		try {
 
-			List<RssFileItem> rssFileItems = new ArrayList<>();
+			Set<RssFileItem> rssFileItems = new HashSet<>();
 			
 			// Watch new files and folder in watched folder
 			final String folderLocation = configuration.getProperty("folders.to.watch", null);
@@ -59,7 +62,7 @@ public class FoldersWatcherRunnable implements Runnable {
 				try (DirectoryStream<Path> stream = Files.newDirectoryStream(folder)) {
 				    for (Path file: stream) {
 				    	for (FolderListener listener : listener) {
-							List<RssFileItem> listenerRssFileItems = listener.folderFile(folder, file);
+							Collection<RssFileItem> listenerRssFileItems = listener.folderFile(folder, file);
 							if (listenerRssFileItems != null) {
 								rssFileItems.addAll(listenerRssFileItems);
 							}
@@ -68,6 +71,7 @@ public class FoldersWatcherRunnable implements Runnable {
 				} catch (IOException | DirectoryIteratorException e) {
 				    LOGGER.error(e.getMessage(),e);;
 				}
+				
 				listener.forEach(listener -> listener.ending(folder));
 			}
 			

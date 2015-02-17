@@ -64,6 +64,7 @@ public class HttpFileServer {
 			this.server = new ServerThread();
 			this.server.setName("HTTP file server: " + this.address.getPort());
 			this.server.start();
+			LOGGER.info("HTTP file server start: {}",this.address);
 		}
 	}
 
@@ -73,9 +74,9 @@ public class HttpFileServer {
 	public void stop() {
 		try {
 			this.connection.close();
-			LOGGER.info("HTTP file server closed.");
+			LOGGER.info("HTTP file server closed: {}",this.address);
 		} catch (final IOException ioe) {
-			LOGGER.error("Could not stop the HTTP file server: {}!", ioe.getMessage());
+			LOGGER.error("Could not stop the HTTP file server: {}!", ioe.getMessage(), ioe);
 		}
 	}
 
@@ -87,6 +88,7 @@ public class HttpFileServer {
 	 * @return the file identifier
 	 */
 	public String addFileToServe(Path path) {
+		LOGGER.trace("Start serving file {}", path);
 		String key = computeKey(path);
 		filesToServe.put(key, path);
 		return key;
@@ -107,7 +109,7 @@ public class HttpFileServer {
 		try {
 			key = DigestUtils.md5Hex(pathString.getBytes("UTF-8"));
 		} catch (UnsupportedEncodingException e) {
-			LOGGER.error("Cannot compute the key for file: " + path, e);
+			LOGGER.error("Cannot compute the key for file: {}", path, e);
 			key = Integer.toString(pathString.hashCode());
 		}
 		return key;
@@ -121,6 +123,7 @@ public class HttpFileServer {
 	 * @return the path
 	 */
 	public Path removeFileToServe(Path path) {
+		LOGGER.trace("Stop serving file {}", path);
 		return filesToServe.remove(computeKey(path));
 	}
 
@@ -180,7 +183,7 @@ public class HttpFileServer {
 			try {
 				connection.connect(address);
 			} catch (final IOException ioe) {
-				LOGGER.error("Could not start the HTTP file server: {}!", ioe.getMessage());
+				LOGGER.error("Could not start the HTTP file server: {}!", ioe.getMessage(), ioe);
 				HttpFileServer.this.stop();
 			}
 		}
@@ -197,6 +200,7 @@ public class HttpFileServer {
 		try {
 			final String deleteString = configuration.getProperty("delete.after.sending", "false");
 			if (Boolean.valueOf(deleteString)) {
+				LOGGER.info("Delete file {}",path);
 				Files.deleteIfExists(path);
 			}
 		} catch (IOException e) {

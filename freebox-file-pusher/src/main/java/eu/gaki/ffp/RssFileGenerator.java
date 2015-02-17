@@ -43,7 +43,7 @@ public class RssFileGenerator {
 			mainRss = IOUtils.toString(mainRssStream);
 			itemRss = IOUtils.toString(itemRssStream);
 		} catch (final Exception e) {
-			LOGGER.error("Cannot read RSS template files:" + e.getMessage(), e);
+			LOGGER.error("Cannot read RSS template files: {}", e.getMessage(), e);
 		}
 	}
 
@@ -63,9 +63,10 @@ public class RssFileGenerator {
 		final File rssFile = new File(rssLocation);
 
 		// Test if something change
-		boolean rewriteRss= false;
+		boolean rewriteRss = false;
 		if (this.rssFileItems == null) {
 			this.rssFileItems = rssFileItems;
+			rewriteRss = true;
 		}
 		int size = this.rssFileItems.size();
 		int newSize = rssFileItems.size();
@@ -104,9 +105,9 @@ public class RssFileGenerator {
 				rss = rss.replace("${items}", items.toString());
 
 				writer.write(rss);
-				LOGGER.info("Write RSS file {}", rssLocation);
+				LOGGER.trace("Write RSS file {}", rssLocation);
 			} catch (final Exception e) {
-				LOGGER.error("Cannot write rss file:" + e.getMessage(), e);
+				LOGGER.error("Cannot write rss file: {}", e.getMessage(), e);
 			}
 		}
 		return rssFile;

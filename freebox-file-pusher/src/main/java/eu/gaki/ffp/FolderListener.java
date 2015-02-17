@@ -2,7 +2,7 @@ package eu.gaki.ffp;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * The listener interface for receiving folder events. The class that is
@@ -11,8 +11,6 @@ import java.util.List;
  * component's <code>addFolderListener<code> method. When
  * the folder event occurs, that object's appropriate
  * method is invoked.
- *
- * @see FolderEvent
  */
 public interface FolderListener {
 
@@ -24,7 +22,7 @@ public interface FolderListener {
 	 * @return the list
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	List<RssFileItem> folderFile(Path folderScanned, Path path) throws IOException;
+	Collection<RssFileItem> folderFile(Path folderScanned, Path path) throws IOException;
 
 	/**
 	 * Ending.

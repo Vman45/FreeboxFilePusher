@@ -18,9 +18,6 @@ import org.apache.commons.daemon.DaemonInitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.gaki.ffp.bittorrent.BittorrentFolderListener;
-import eu.gaki.ffp.http.HttpFolderListener;
-
 /**
  * The Class FreeboxFilePusher.
  *
@@ -38,7 +35,7 @@ public class FreeboxFilePusher implements Daemon {
 	private ScheduledExecutorService watchExecutor;
 
 	/** The configuration. */
-	private final Properties configuration = new Properties();
+	private Properties configuration;
 
 	/** The folders watcher runnable. */
 	private FoldersWatcherRunnable foldersWatcherRunnable;
@@ -51,7 +48,7 @@ public class FreeboxFilePusher implements Daemon {
 	 */
 	@Override
 	public void init(final DaemonContext context) throws DaemonInitException, Exception {
-
+		LOGGER.trace("Initialize...");
 		// Construct objects and initialize variables here. You can access the
 		// command line arguments that would normally be passed to your main()
 		// method as follows
@@ -76,11 +73,11 @@ public class FreeboxFilePusher implements Daemon {
 		String enableHttp = configuration.getProperty("ffp.enable.http", "true");
 		
 		if (Boolean.valueOf(enableBittorent)) {
-			foldersWatcherRunnable.addFolderListener(new BittorrentFolderListener(configuration));
+			foldersWatcherRunnable.addFolderListener(new eu.gaki.ffp.bittorrent.BittorrentFolderListener(configuration));
 		}
 		
 		if (Boolean.valueOf(enableHttp)) {
-			foldersWatcherRunnable.addFolderListener(new HttpFolderListener(configuration));
+			foldersWatcherRunnable.addFolderListener(new eu.gaki.ffp.http.HttpFolderListener(configuration));
 		}
 
 	}
@@ -94,6 +91,7 @@ public class FreeboxFilePusher implements Daemon {
 	 *             Signals that an I/O exception has occurred.
 	 */
 	private void loadConfigurationFile(final String[] args) throws IOException {
+		configuration = new Properties();
 		String propertiesfileLocation = "freeboxFilePusher.properties";
 		if (args != null && args.length == 1) {
 			propertiesfileLocation = args[0];
@@ -104,7 +102,7 @@ public class FreeboxFilePusher implements Daemon {
 				configuration.load(configurationInputStream);
 			}
 		} catch (final IOException e) {
-			LOGGER.error("Cannot load configuration file: " + e.getMessage(), e);
+			LOGGER.error("Cannot load configuration file: {}", e.getMessage(), e);
 			throw e;
 		}
 	}
@@ -135,6 +133,7 @@ public class FreeboxFilePusher implements Daemon {
 	 */
 	@Override
 	public void start() throws Exception {
+		LOGGER.trace("Start...");
 		final String repeatInterval = configuration.getProperty("folder.scan.interval.seconds", DEFAULT_REPEAT_INTERVAL);
 		watchExecutor.scheduleWithFixedDelay(foldersWatcherRunnable, 10, Long.valueOf(repeatInterval), TimeUnit.SECONDS);
 	}
@@ -144,6 +143,7 @@ public class FreeboxFilePusher implements Daemon {
 	 */
 	@Override
 	public void stop() throws Exception {
+		LOGGER.trace("Stop...");
 		watchExecutor.shutdown();
 	}
 
@@ -152,7 +152,10 @@ public class FreeboxFilePusher implements Daemon {
 	 */
 	@Override
 	public void destroy() {
+		LOGGER.trace("Destroy...");
 		watchExecutor = null;
+		configuration = null;
+		foldersWatcherRunnable = null;
 	}
 
 	/**

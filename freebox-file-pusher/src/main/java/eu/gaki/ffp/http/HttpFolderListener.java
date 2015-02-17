@@ -8,9 +8,9 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -75,8 +75,8 @@ public class HttpFolderListener implements FolderListener {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public List<RssFileItem> folderFile(Path folderScanned, Path path) throws IOException {
-		final List<RssFileItem> rssFileItems = new ArrayList<>();
+	public Collection<RssFileItem> folderFile(Path folderScanned, Path path) throws IOException {
+		final Set<RssFileItem> rssFileItems = new HashSet<>();
 
 		startHttpServer();
 		if (Files.exists(path) && !Files.isDirectory(path) && !httpFileServer.isFileServed(path)) {
@@ -107,14 +107,14 @@ public class HttpFolderListener implements FolderListener {
 						final FileTime lastModifiedTime = Files.getLastModifiedTime(entryPath);
 						rssFileItem.setDate(new Date(lastModifiedTime.toMillis()));
 					} catch (IOException e) {
-						LOGGER.error("Cannot determine the modification date of " + entryPath, e);
+						LOGGER.error("Cannot determine the modification date of {}", entryPath, e);
 						rssFileItem.setDate(new Date());
 					}
 					// Rss file size
 					try {
 						rssFileItem.setSize(Files.size(entryPath));
 					} catch (Exception e) {
-						LOGGER.error("Cannot compute the size of "+entryPath,e);
+						LOGGER.error("Cannot compute the size of {}", entryPath, e);
 						rssFileItem.setSize(0L);
 					}
 					rssFileItems.add(rssFileItem);

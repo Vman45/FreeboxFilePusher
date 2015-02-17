@@ -9,14 +9,31 @@
 		  value="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n" />
 	    </layout>
 	</appender>
+
+	<appender name="file" class="org.apache.log4j.RollingFileAppender">
+		<param name="append" value="true"/>
+		<param name="threshold" value="TRACE"/>
+		<param name="file" value="freeboxFilePusher.log"/>
+    	<param name="maxFileSize" value="2048KB"/>
+		<param name="maxBackupIndex" value="5" />
+		
+<!-- 		<rollingPolicy class="org.apache.log4j.rolling.TimeBasedRollingPolicy"> -->
+<!-- 			<param name="FileNamePattern" value="freeboxFilePusher.%d{yyyy-MM}.gz" /> -->
+<!-- 		</rollingPolicy> -->
+
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n" />
+		</layout>
+	</appender>
 	
 	<logger name="eu.gaki.ffp">
-		<level value="INFO" />
+		<level value="TRACE" />
 	</logger>
  
 	<root>
 		<level value="WARN" />
 		<appender-ref ref="console" />
+		<appender-ref ref="file" />
 	</root>
  
 </log4j:configuration>

@@ -49,16 +49,34 @@ public class HttpFileServerService implements Container {
 
 		final Path pathToServe = httpFileServer.getFileToServe(target);
 		if (pathToServe != null && Files.exists(pathToServe)) {
+			LOGGER.info("Send resource {}", pathToServe);
 			if (range != null && range.trim().length() != 0) {
 				sendRange(response, pathToServe, range);
 			} else {
 				sendAll(request, response, pathToServe);
 			}
 		} else {
-			LOGGER.info("Couldn't found resource " + target);
+			LOGGER.info("Couldn't found resource {}", target);
+			sendError(response,Status.NOT_FOUND);
 		}
 
 	}
+	
+	/**
+	 * Send error.
+	 *
+	 * @param response the response
+	 * @param status the status
+	 */
+	private void sendError(Response response, Status status) {
+		response.setStatus(status);
+		try {
+			response.close();
+		} catch (IOException e) {
+			LOGGER.error(e.getMessage(), e);
+		}
+	}
+	
 
 	/**
 	 * Detect transfert end.
@@ -79,13 +97,14 @@ public class HttpFileServerService implements Container {
 
 				while (response.getResponseTime() <= 0) {
 					try {
-						Thread.sleep(1000);
+						Thread.sleep(5000);
 					} catch (final InterruptedException e) {
 						LOGGER.error(e.getMessage(), e);
 					}
 				}
 
 				if (response.getResponseTime() > 0) {
+					LOGGER.trace("Transfert end for {}", path);
 					httpFileServer.removeAndDeleteFileToServe(path);
 				}
 
@@ -104,7 +123,8 @@ public class HttpFileServerService implements Container {
 	 *            the file
 	 */
 	private void sendAll(Request request, final Response response, final Path file) {
-		try (WritableByteChannel output = response.getByteChannel(); FileChannel channel = FileChannel.open(file, StandardOpenOption.READ)) {
+		try (WritableByteChannel output = response.getByteChannel(); 
+				FileChannel channel = FileChannel.open(file, StandardOpenOption.READ)) {
 			// Total length
 			final long lengthBytes = channel.size();
 			response.setStatus(Status.OK);
@@ -119,8 +139,8 @@ public class HttpFileServerService implements Container {
 				detectTransfertEnd(response, file);
 			}
 		} catch (final IOException e) {
-			response.setStatus(Status.INTERNAL_SERVER_ERROR);
 			LOGGER.error(e.getMessage(), e);
+			sendError(response,Status.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -177,15 +197,17 @@ public class HttpFileServerService implements Container {
 					}
 
 				} catch (final IOException e) {
-					response.setStatus(Status.INTERNAL_SERVER_ERROR);
 					LOGGER.error(e.getMessage(), e);
+					sendError(response,Status.INTERNAL_SERVER_ERROR);
 				}
 
 			} else {
-				response.setStatus(Status.REQUESTED_RANGE_NOT_SATISFIABLE);
+				LOGGER.error("Don't support multiple range.");
+				sendError(response,Status.REQUESTED_RANGE_NOT_SATISFIABLE);
 			}
 		} else {
-			response.setStatus(Status.REQUESTED_RANGE_NOT_SATISFIABLE);
+			LOGGER.error("Only support bytes range.");
+			sendError(response,Status.REQUESTED_RANGE_NOT_SATISFIABLE);
 		}
 	}
 

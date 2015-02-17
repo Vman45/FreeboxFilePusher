@@ -9,6 +9,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -36,6 +37,9 @@ public class HttpFileServer {
 
 	/** The files to serve. */
 	private final Map<String, Path> filesToServe = new HashMap<>();
+	
+	/** The configuration. */
+	private final Properties configuration;
 
 	/**
 	 * Instantiates a new http file server.
@@ -46,7 +50,8 @@ public class HttpFileServer {
 	 *             Signals that an I/O exception has occurred.
 	 * @throws NoSuchAlgorithmException
 	 */
-	public HttpFileServer(final InetSocketAddress address) throws IOException {
+	public HttpFileServer(Properties configuration, final InetSocketAddress address) throws IOException {
+		this.configuration = configuration;
 		this.address = address;
 		this.connection = new SocketConnection(new ContainerSocketProcessor(new HttpFileServerService(this)));
 	}
@@ -190,21 +195,13 @@ public class HttpFileServer {
 	public void removeAndDeleteFileToServe(Path path) {
 		removeFileToServe(path);
 		try {
-			Files.deleteIfExists(path);
+			final String deleteString = configuration.getProperty("delete.after.sending", "false");
+			if (Boolean.valueOf(deleteString)) {
+				Files.deleteIfExists(path);
+			}
 		} catch (IOException e) {
 			LOGGER.error("Cannot delete the file.", e);
 		}
-
-		// this.filesToServe.forEach((key, value) -> {
-		// if (value.equals(path)) {
-		// removeFileToServe(key);
-		// try {
-		// Files.deleteIfExists(value);
-		// } catch (IOException e) {
-		// LOGGER.error("Cannot delete the file.", e);
-		// }
-		// }
-		// });
 	}
 
 }

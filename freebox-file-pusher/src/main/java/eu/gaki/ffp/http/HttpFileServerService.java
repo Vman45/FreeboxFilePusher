@@ -1,11 +1,9 @@
 package eu.gaki.ffp.http;
 
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.WritableByteChannel;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
@@ -25,14 +23,15 @@ public class HttpFileServerService implements Container {
 
 	/** The Constant LOGGER. */
 	private static final Logger LOGGER = LoggerFactory.getLogger(HttpFileServerService.class);
-	
+
 	/** The http file server. */
 	private HttpFileServer httpFileServer;
 
 	/**
 	 * Instantiates a new http file server service.
 	 *
-	 * @param httpFileServer the http file server
+	 * @param httpFileServer
+	 *            the http file server
 	 */
 	public HttpFileServerService(HttpFileServer httpFileServer) {
 		this.httpFileServer = httpFileServer;
@@ -46,7 +45,7 @@ public class HttpFileServerService implements Container {
 		// request.getValue("If-Range");
 		final String range = request.getValue("Range");
 
-		final String target =request.getPath().getName();
+		final String target = request.getPath().getName();
 
 		final Path pathToServe = httpFileServer.getFileToServe(target);
 		if (pathToServe != null && Files.exists(pathToServe)) {
@@ -56,7 +55,7 @@ public class HttpFileServerService implements Container {
 				sendAll(request, response, pathToServe);
 			}
 		} else {
-			LOGGER.info("Couldn't found resource "+target);
+			LOGGER.info("Couldn't found resource " + target);
 		}
 
 	}
@@ -64,8 +63,10 @@ public class HttpFileServerService implements Container {
 	/**
 	 * Detect transfert end.
 	 *
-	 * @param response the response
-	 * @param path the file
+	 * @param response
+	 *            the response
+	 * @param path
+	 *            the file
 	 */
 	private void detectTransfertEnd(final Response response, Path path) {
 		// Try to detect when the file upload is complete
@@ -80,7 +81,7 @@ public class HttpFileServerService implements Container {
 					try {
 						Thread.sleep(1000);
 					} catch (final InterruptedException e) {
-						LOGGER.error(e.getMessage(),e);
+						LOGGER.error(e.getMessage(), e);
 					}
 				}
 
@@ -95,19 +96,21 @@ public class HttpFileServerService implements Container {
 	/**
 	 * Send all.
 	 *
-	 * @param request the request
-	 * @param response            the response
-	 * @param file            the file
+	 * @param request
+	 *            the request
+	 * @param response
+	 *            the response
+	 * @param file
+	 *            the file
 	 */
 	private void sendAll(Request request, final Response response, final Path file) {
-		try (WritableByteChannel output = response.getByteChannel();
-				FileChannel channel = FileChannel.open(file, StandardOpenOption.READ)) {
+		try (WritableByteChannel output = response.getByteChannel(); FileChannel channel = FileChannel.open(file, StandardOpenOption.READ)) {
 			// Total length
 			final long lengthBytes = channel.size();
 			response.setStatus(Status.OK);
 			response.setDate("Date", System.currentTimeMillis());
 			response.setContentType("application/octetstream");
-			response.setValue("Content-Disposition", "attachment; filename=\""+file.getFileName()+"\"");
+			response.setValue("Content-Disposition", "attachment; filename=\"" + file.getFileName() + "\"");
 			response.setValue("Accept-Ranges", "bytes");
 			// response.setValue("Last-Modified", "");
 			response.setContentLength(lengthBytes);
@@ -117,7 +120,7 @@ public class HttpFileServerService implements Container {
 			}
 		} catch (final IOException e) {
 			response.setStatus(Status.INTERNAL_SERVER_ERROR);
-			LOGGER.error(e.getMessage(),e);
+			LOGGER.error(e.getMessage(), e);
 		}
 	}
 
@@ -139,9 +142,8 @@ public class HttpFileServerService implements Container {
 			if (rangeIntervals.length == 1) {
 				final String[] rangeInterval = rangeIntervals[0].trim().split("-");
 
-				try (WritableByteChannel output = response.getByteChannel();
-						FileChannel channel = FileChannel.open(file, StandardOpenOption.READ)) {
-					
+				try (WritableByteChannel output = response.getByteChannel(); FileChannel channel = FileChannel.open(file, StandardOpenOption.READ)) {
+
 					// Total length
 					final long lengthBytes = channel.size();
 
@@ -162,7 +164,7 @@ public class HttpFileServerService implements Container {
 					response.setDate("Date", System.currentTimeMillis());
 					response.setValue("Accept-Ranges", "bytes");
 					response.setContentType("application/octetstream");
-					response.setValue("Content-Disposition", "attachment; filename=\""+file.getFileName()+"\"");
+					response.setValue("Content-Disposition", "attachment; filename=\"" + file.getFileName() + "\"");
 					long contentLength = lastBytePosition - firstBytePosition + 1;
 					response.setContentLength(contentLength);
 					response.setValue("Content-Range", "bytes " + firstBytePosition + "-" + lastBytePosition + "/" + lengthBytes);
@@ -176,7 +178,7 @@ public class HttpFileServerService implements Container {
 
 				} catch (final IOException e) {
 					response.setStatus(Status.INTERNAL_SERVER_ERROR);
-					LOGGER.error(e.getMessage(),e);
+					LOGGER.error(e.getMessage(), e);
 				}
 
 			} else {

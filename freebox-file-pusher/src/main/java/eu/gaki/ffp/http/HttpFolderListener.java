@@ -146,7 +146,7 @@ public class HttpFolderListener implements FolderListener {
 		if (httpFileServer == null) {
 			final String serverPort = configuration.getProperty("http.server.port", "80");
 			final String serverIp = configuration.getProperty("http.server.ip", InetAddress.getLocalHost().getHostName());
-			httpFileServer = new HttpFileServer(new InetSocketAddress(serverIp, Integer.valueOf(serverPort)));
+			httpFileServer = new HttpFileServer(configuration, new InetSocketAddress(serverIp, Integer.valueOf(serverPort)));
 			httpFileServer.start();
 		}
 	}

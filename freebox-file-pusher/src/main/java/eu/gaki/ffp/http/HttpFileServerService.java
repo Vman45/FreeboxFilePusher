@@ -1,11 +1,13 @@
 package eu.gaki.ffp.http;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.channels.FileChannel;
 import java.nio.channels.WritableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.simpleframework.http.Request;
 import org.simpleframework.http.Response;
@@ -87,29 +89,25 @@ public class HttpFileServerService implements Container {
 	 *            the file
 	 */
 	private void detectTransfertEnd(final Response response, Path path) {
-		// Try to detect when the file upload is complete
-		new Thread(new Runnable() {
-			/**
-			 * {@inheritDoc}
-			 */
-			@Override
-			public void run() {
-
-				while (response.getResponseTime() <= 0) {
-					try {
-						Thread.sleep(5000);
-					} catch (final InterruptedException e) {
-						LOGGER.error(e.getMessage(), e);
-					}
-				}
-
-				if (response.getResponseTime() > 0) {
+		
+		try {
+			if (response.getResponseTime() > 0) {
+				// Get response observer
+				Field observerField = response.getClass().getDeclaredField("observer");
+				observerField.setAccessible(true);
+				Object responseObserver = (Object) observerField.get(response);
+				// Get error flag value
+				Field errorField = responseObserver.getClass().getDeclaredField("error");
+				errorField.setAccessible(true);
+				AtomicBoolean error = (AtomicBoolean) errorField.get(responseObserver);
+				if (!error.get()) {
 					LOGGER.trace("Transfert end for {}", path);
 					httpFileServer.removeAndDeleteFileToServe(path);
 				}
-
 			}
-		}).start();
+		} catch (NoSuchFieldException  | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+			LOGGER.error(e.getMessage(), e);
+		} 
 	}
 
 	/**
@@ -123,25 +121,7 @@ public class HttpFileServerService implements Container {
 	 *            the file
 	 */
 	private void sendAll(Request request, final Response response, final Path file) {
-		try (WritableByteChannel output = response.getByteChannel(); 
-				FileChannel channel = FileChannel.open(file, StandardOpenOption.READ)) {
-			// Total length
-			final long lengthBytes = channel.size();
-			response.setStatus(Status.OK);
-			response.setDate("Date", System.currentTimeMillis());
-			response.setContentType("application/octetstream");
-			response.setValue("Content-Disposition", "attachment; filename=\"" + file.getFileName() + "\"");
-			response.setValue("Accept-Ranges", "bytes");
-			// response.setValue("Last-Modified", "");
-			response.setContentLength(lengthBytes);
-			if (!"HEAD".equals(request.getMethod())) {
-				channel.transferTo(0, lengthBytes, output);
-				detectTransfertEnd(response, file);
-			}
-		} catch (final IOException e) {
-			LOGGER.error(e.getMessage(), e);
-			sendError(response,Status.INTERNAL_SERVER_ERROR);
-		}
+		sendRange(response, file, "bytes=0-");
 	}
 
 	/**

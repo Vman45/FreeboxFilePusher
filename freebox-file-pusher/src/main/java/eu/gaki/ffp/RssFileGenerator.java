@@ -1,9 +1,11 @@
 package eu.gaki.ffp;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.InputStream;
-import java.io.Writer;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
@@ -19,98 +21,108 @@ import org.slf4j.LoggerFactory;
  */
 public class RssFileGenerator {
 
-	/** The Constant LOGGER. */
-	private static final Logger LOGGER = LoggerFactory.getLogger(RssFileGenerator.class);
+    /** The Constant LOGGER. */
+    private static final Logger LOGGER = LoggerFactory.getLogger(RssFileGenerator.class);
 
-	/** The Constant DATE_PARSER: Mon, 22 Jul 2013 00:12:38 +0200 */
-	private static final DateFormat DATE_PARSER = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
+    /** The Constant DATE_PARSER: Mon, 22 Jul 2013 00:12:38 +0200 */
+    private static final DateFormat DATE_PARSER = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
 
-	/** The main rss. */
-	private String mainRss;
+    /** The main rss. */
+    private String mainRss;
 
-	/** The item rss. */
-	private String itemRss;
+    /** The item rss. */
+    private String itemRss;
 
-	/** The rss file items. */
-	private Collection<RssFileItem> rssFileItems;
+    /** The rss file items. */
+    private Collection<RssFileItem> rssFileItems;
 
-	/**
-	 * Instantiates a new torrent rss.
-	 */
-	public RssFileGenerator() {
-		try (InputStream mainRssStream = RssFileGenerator.class.getResourceAsStream("mainRss.template");
-				InputStream itemRssStream = RssFileGenerator.class.getResourceAsStream("itemRss.template")) {
-			mainRss = IOUtils.toString(mainRssStream);
-			itemRss = IOUtils.toString(itemRssStream);
-		} catch (final Exception e) {
-			LOGGER.error("Cannot read RSS template files: {}", e.getMessage(), e);
-		}
+    /**
+     * Instantiates a new torrent rss.
+     */
+    public RssFileGenerator() {
+	try (InputStream mainRssStream = RssFileGenerator.class.getResourceAsStream("mainRss.template");
+		InputStream itemRssStream = RssFileGenerator.class.getResourceAsStream("itemRss.template")) {
+	    mainRss = IOUtils.toString(mainRssStream);
+	    itemRss = IOUtils.toString(itemRssStream);
+	} catch (final Exception e) {
+	    LOGGER.error("Cannot read RSS template files: {}", e.getMessage(), e);
 	}
+    }
 
-	/**
-	 * Generate rss.
-	 *
-	 * @param configuration
-	 *            the configuration
-	 * @param rssFileItems
-	 *            the torrent files
-	 * @return the file
-	 */
-	public File generateRss(final Properties configuration, final Collection<RssFileItem> rssFileItems) {
+    /**
+     * Generate rss.
+     *
+     * @param configuration
+     *            the configuration
+     * @param rssFileItems
+     *            the torrent files
+     * @return the file
+     */
+    public Path generateRss(final Properties configuration, final Collection<RssFileItem> rssFileItems) {
 
-		// Get RSS file location
-		final String rssLocation = configuration.getProperty("rss.location", "rss.xml");
-		final File rssFile = new File(rssLocation);
+	// Get RSS file location
+	final String rssLocation = configuration.getProperty("rss.location", "rss.xml");
+	final Path rssFile = FileSystems.getDefault().getPath(rssLocation);
 
-		// Test if something change
-		boolean rewriteRss = false;
-		if (this.rssFileItems == null) {
-			this.rssFileItems = rssFileItems;
-			rewriteRss = true;
+	// If something change rewrite the RSS file
+	if (isRssItemsChanged(rssFileItems)) {
+	    this.rssFileItems = rssFileItems;
+	    // Get RSS file URL
+	    final String rssUrlTemplate = configuration.getProperty("rss.url", "http://unknown/${file.name}");
+	    final String rssUrl = rssUrlTemplate.replace("${file.name}", FilenameUtils.getName(rssLocation));
+	    // Get torrent file URL
+
+	    try (FileChannel rssFileChanel = FileChannel.open(rssFile, StandardOpenOption.WRITE,
+		    StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);) {
+
+		final StringBuilder items = new StringBuilder();
+		for (final RssFileItem rssFileItem : rssFileItems) {
+		    String item;
+		    item = itemRss.replace("${file.name}", rssFileItem.getName());
+		    item = item.replace("${file.url}", rssFileItem.getUrl());
+		    item = item.replace("${file.size}", Long.toString(rssFileItem.getSize()));
+		    item = item.replace("${file.date}", DATE_PARSER.format(rssFileItem.getDate()));
+		    items.append(item);
 		}
-		int size = this.rssFileItems.size();
-		int newSize = rssFileItems.size();
-		if (size != newSize) {
-			rewriteRss = true;
-		} else {
-			for (RssFileItem rssFileItem : rssFileItems) {
-				if(!this.rssFileItems.contains(rssFileItem)) {
-					rewriteRss = true;
-					break;
-				}
-			}
-		}
 
-		// If something change rewrite the RSS file
-		if (rewriteRss) {
-			this.rssFileItems = rssFileItems;
-			// Get RSS file URL
-			final String rssUrlTemplate = configuration.getProperty("rss.url", "http://unknown/${file.name}");
-			final String rssUrl = rssUrlTemplate.replace("${file.name}", FilenameUtils.getName(rssLocation));
-			// Get torrent file URL
-			try (Writer writer = new FileWriter(rssFile)) {
-
-				final StringBuilder items = new StringBuilder();
-				for (final RssFileItem rssFileItem : rssFileItems) {
-					String item;
-					item = itemRss.replace("${file.name}", rssFileItem.getName());
-					item = item.replace("${file.url}", rssFileItem.getUrl());
-					item = item.replace("${file.size}", Long.toString(rssFileItem.getSize()));
-					item = item.replace("${file.date}", DATE_PARSER.format(rssFileItem.getDate()));
-					items.append(item);
-				}
-
-				String rss;
-				rss = mainRss.replace("${rss.url}", rssUrl);
-				rss = rss.replace("${items}", items.toString());
-
-				writer.write(rss);
-				LOGGER.trace("Write RSS file {}", rssLocation);
-			} catch (final Exception e) {
-				LOGGER.error("Cannot write rss file: {}", e.getMessage(), e);
-			}
-		}
-		return rssFile;
+		String rss = mainRss.replace("${rss.url}", rssUrl);
+		rss = rss.replace("${items}", items.toString());
+		final ByteBuffer wrap = ByteBuffer.wrap(rss.getBytes());
+		rssFileChanel.write(wrap);
+		LOGGER.trace("Write RSS file {}", rssLocation);
+	    } catch (final Exception e) {
+		LOGGER.error("Cannot write rss file: {}", e.getMessage(), e);
+	    }
 	}
+	return rssFile;
+    }
+
+    /**
+     * Checks if is rss items changed.
+     *
+     * @param rssFileItems
+     *            the rss file items
+     * @return true, if is rss items changed
+     */
+    private boolean isRssItemsChanged(final Collection<RssFileItem> rssFileItems) {
+	boolean rewriteRss = false;
+	if (this.rssFileItems == null) {
+	    this.rssFileItems = rssFileItems;
+	    rewriteRss = true;
+	}
+	final int size = this.rssFileItems.size();
+	final int newSize = rssFileItems.size();
+	if (size != newSize) {
+	    rewriteRss = true;
+	} else {
+	    for (final RssFileItem rssFileItem : rssFileItems) {
+		if(!this.rssFileItems.contains(rssFileItem)) {
+		    rewriteRss = true;
+		    break;
+		}
+	    }
+	}
+	return rewriteRss;
+    }
 
 }

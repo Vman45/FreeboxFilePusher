@@ -28,7 +28,7 @@ public class FoldersWatcherRunnable implements Runnable {
 	private final Properties configuration;
 
 	/** The listener. */
-	private List<FolderListener> listener = new ArrayList<>();
+	private final List<FolderListener> listeners = new ArrayList<>();
 
 	/** The torrent rss. */
 	private final RssFileGenerator rssFileGenerator;
@@ -39,7 +39,7 @@ public class FoldersWatcherRunnable implements Runnable {
 	 * @param configuration            the configuration
 	 * @param rssFileGenerator the rss file generator
 	 */
-	public FoldersWatcherRunnable(final Properties configuration, RssFileGenerator rssFileGenerator) {
+	public FoldersWatcherRunnable(final Properties configuration, final RssFileGenerator rssFileGenerator) {
 		this.configuration = configuration;
 		this.rssFileGenerator = rssFileGenerator;
 	}
@@ -51,18 +51,18 @@ public class FoldersWatcherRunnable implements Runnable {
 	public void run() {
 		try {
 
-			Set<RssFileItem> rssFileItems = new HashSet<>();
+			final Set<RssFileItem> rssFileItems = new HashSet<>();
 			
 			// Watch new files and folder in watched folder
 			final String folderLocation = configuration.getProperty("folders.to.watch", null);
 			if (folderLocation != null) {
-				Path folder = FileSystems.getDefault().getPath(folderLocation);
-				listener.forEach(listener -> listener.beginning(folder));
+				final Path folder = FileSystems.getDefault().getPath(folderLocation);
+				listeners.forEach(listener -> listener.beginning(folder));
 				
 				try (DirectoryStream<Path> stream = Files.newDirectoryStream(folder)) {
-				    for (Path file: stream) {
-				    	for (FolderListener listener : listener) {
-							Collection<RssFileItem> listenerRssFileItems = listener.folderFile(folder, file);
+				    for (final Path file: stream) {
+				    	for (final FolderListener listener : listeners) {
+							final Collection<RssFileItem> listenerRssFileItems = listener.folderFile(folder, file);
 							if (listenerRssFileItems != null) {
 								rssFileItems.addAll(listenerRssFileItems);
 							}
@@ -72,7 +72,7 @@ public class FoldersWatcherRunnable implements Runnable {
 				    LOGGER.error(e.getMessage(),e);;
 				}
 				
-				listener.forEach(listener -> listener.ending(folder));
+				listeners.forEach(listener -> listener.ending(folder));
 			}
 			
 			rssFileGenerator.generateRss(configuration, rssFileItems);
@@ -88,8 +88,8 @@ public class FoldersWatcherRunnable implements Runnable {
 	 * @param folderListener
 	 *            the folder listener
 	 */
-	void addFolderListener(FolderListener folderListener) {
-		listener.add(folderListener);
+	void addFolderListener(final FolderListener folderListener) {
+		listeners.add(folderListener);
 	}
 
 }

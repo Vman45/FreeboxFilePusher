@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
-import org.apache.commons.compress.compressors.xz.XZCompressorOutputStream;
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +33,7 @@ public class FilesCompresor {
 	private static final Logger LOGGER = LoggerFactory.getLogger(HttpFolderListener.class);
 
 	/** The Constant TXZ. */
-	private static final String TXZ = ".txz";
+	private static final String TXZ = ".tbz2";
 
 	/** The configuration. */
 	private final Properties configuration;
@@ -66,7 +66,7 @@ public class FilesCompresor {
 		final Path tarXzFile = computeTarXzName(pathToCompress);
 		try (final OutputStream tarXzOutputStream = Files.newOutputStream(tarXzFile, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 				final OutputStream tarXzBufferedOutputStream = new BufferedOutputStream(tarXzOutputStream);
-				final OutputStream xzOutputStream = new XZCompressorOutputStream(tarXzBufferedOutputStream, 0);
+				final OutputStream xzOutputStream = new BZip2CompressorOutputStream(tarXzBufferedOutputStream, 5);
 				final TarArchiveOutputStream tarOutputStream = new TarArchiveOutputStream(xzOutputStream);
 				Stream<Path> walk = Files.walk(pathToCompress, FileVisitOption.FOLLOW_LINKS);) {
 

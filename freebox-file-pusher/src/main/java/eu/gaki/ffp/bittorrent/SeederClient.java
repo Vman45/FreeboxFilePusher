@@ -1,6 +1,5 @@
 package eu.gaki.ffp.bittorrent;
 
-import java.io.File;
 import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;

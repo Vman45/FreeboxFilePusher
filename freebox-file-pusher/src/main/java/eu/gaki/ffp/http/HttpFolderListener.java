@@ -36,150 +36,125 @@ import eu.gaki.ffp.compress.FilesCompresor;
  */
 public class HttpFolderListener implements FolderListener {
 
-    /** The Constant LOGGER. */
-    private static final Logger LOGGER = LoggerFactory.getLogger(HttpFolderListener.class);
+	/** The Constant LOGGER. */
+	private static final Logger LOGGER = LoggerFactory.getLogger(HttpFolderListener.class);
 
-    /** The http file server. */
-    private HttpFileServer httpFileServer;
+	/** The http file server. */
+	private final HttpFileServer httpFileServer;
 
-    /** The configuration. */
-    private final Properties configuration;
+	/** The configuration. */
+	private final Properties configuration;
 
-    /** The files compresor. */
-    private final FilesCompresor filesCompresor;
+	/** The files compresor. */
+	private final FilesCompresor filesCompresor;
 
-    /**
-     * Instantiates a new http folder listener.
-     *
-     * @param configuration
-     *            the configuration
-     */
-    public HttpFolderListener(final Properties configuration) {
-	this.configuration = configuration;
-	this.filesCompresor = new FilesCompresor(configuration);
-    }
+	/**
+	 * Instantiates a new http folder listener.
+	 *
+	 * @param configuration
+	 *            the configuration
+	 * @throws IOException
+	 * @throws NumberFormatException
+	 */
+	public HttpFolderListener(final Properties configuration) throws NumberFormatException, IOException {
+		this.configuration = configuration;
+		this.filesCompresor = new FilesCompresor(configuration);
+		final String serverPort = configuration.getProperty("http.server.port", "80");
+		final String serverIp = configuration.getProperty("http.server.ip", InetAddress.getLocalHost().getHostName());
+		this.httpFileServer = new HttpFileServer(configuration, new InetSocketAddress(serverIp, Integer.valueOf(serverPort)));
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void beginning(final Path folderScanned) {
-	// Remove tracked file which no more exist
-	if (httpFileServer != null) {
-	    final Set<Map.Entry<String, Path>> filesToServe = httpFileServer.getFilesToServe();
-	    filesToServe.forEach(entry -> {
-		final Path path = entry.getValue();
-		if (Files.notExists(path)) {
-		    httpFileServer.removeFileToServe(path);
-		    LOGGER.info("Remove http file: {}", path);
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void beginning(final Path folderScanned) {
+		// Remove tracked file which no more exist
+		final Set<Map.Entry<String, Path>> filesToServe = httpFileServer.getFilesToServe();
+		filesToServe.forEach(entry -> {
+			final Path path = entry.getValue();
+			if (Files.notExists(path)) {
+				httpFileServer.removeFileToServe(path);
+				LOGGER.info("Remove http file: {}", path);
+			}
+		});
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Collection<RssFileItem> folderFile(final Path folderScanned, final Path path) throws IOException {
+		final Set<RssFileItem> rssFileItems = new HashSet<>();
+
+		httpFileServer.start();
+		if (Files.exists(path) && !Files.isDirectory(path) && !httpFileServer.isFileServed(path)) {
+			httpFileServer.addFileToServe(path);
+		} else if (Files.isDirectory(path)) {
+			final String property = configuration.getProperty("ffp.compress.folder", "true");
+			if (Boolean.valueOf(property)) {
+				filesCompresor.compress(path);
+				FileUtils.deleteDirectory(path.toFile());
+			}
 		}
-	    });
-	}
-    }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Collection<RssFileItem> folderFile(final Path folderScanned, final Path path) throws IOException {
-	final Set<RssFileItem> rssFileItems = new HashSet<>();
+		computeRssItemList(rssFileItems);
 
-	startHttpServer();
-	if (Files.exists(path) && !Files.isDirectory(path) && !httpFileServer.isFileServed(path)) {
-	    httpFileServer.addFileToServe(path);
-	} else if (Files.isDirectory(path)) {
-	    final String property = configuration.getProperty("ffp.compress.folder", "true");
-	    if (Boolean.valueOf(property)) {
-		filesCompresor.compress(path);
-		FileUtils.deleteDirectory(path.toFile());
-	    }
+		return rssFileItems;
 	}
 
-	computeRssItemList(rssFileItems);
+	/**
+	 * Compute rss item list.
+	 *
+	 * @param rssFileItems
+	 *            the rss file items
+	 */
+	private void computeRssItemList(final Set<RssFileItem> rssFileItems) {
+		// Publish RSS file with served files
+		final Set<Entry<String, Path>> filesToServe = httpFileServer.getFilesToServe();
+		final String httpUrlTemplate = configuration.getProperty("http.url", "http://unknown/${file.name}");
+		filesToServe.forEach(entry -> {
+			final Path entryPath = entry.getValue();
+			final RssFileItem rssFileItem = new RssFileItem();
+			// Rss link name
+			rssFileItem.setName(entryPath.getFileName().toString());
+			// Rss file URL
+			final String name = entry.getKey();
+			String nameUrl;
+			try {
+				nameUrl = URLEncoder.encode(name, "UTF-8");
+			} catch (final UnsupportedEncodingException e1) {
+				LOGGER.error("Error when URL encode the file name. Fallback without URL encode", e1);
+				nameUrl = name;
+			}
+			rssFileItem.setUrl(httpUrlTemplate.replace("${file.name}", nameUrl));
+			// Rss file date
+			try {
+				final FileTime lastModifiedTime = Files.getLastModifiedTime(entryPath);
+				rssFileItem.setDate(new Date(lastModifiedTime.toMillis()));
+			} catch (final IOException e) {
+				LOGGER.error("Cannot determine the modification date of {}", entryPath, e);
+				rssFileItem.setDate(new Date());
+			}
+			// Rss file size
+			try {
+				rssFileItem.setSize(Files.size(entryPath));
+			} catch (final Exception e) {
+				LOGGER.error("Cannot compute the size of {}", entryPath, e);
+				rssFileItem.setSize(0L);
+			}
+			rssFileItems.add(rssFileItem);
+		});
+	}
 
-	return rssFileItems;
-    }
-
-    /**
-     * Compute rss item list.
-     *
-     * @param rssFileItems
-     *            the rss file items
-     */
-    private void computeRssItemList(final Set<RssFileItem> rssFileItems) {
-	if (httpFileServer != null) {
-	    // Publish RSS file with served files
-	    final Set<Entry<String, Path>> filesToServe = httpFileServer.getFilesToServe();
-	    final String httpUrlTemplate = configuration.getProperty("http.url", "http://unknown/${file.name}");
-	    filesToServe.forEach(entry -> {
-		final Path entryPath = entry.getValue();
-		final RssFileItem rssFileItem = new RssFileItem();
-		// Rss link name
-		rssFileItem.setName(entryPath.getFileName().toString());
-		// Rss file URL
-		final String name = entry.getKey();
-		String nameUrl;
-		try {
-		    nameUrl = URLEncoder.encode(name, "UTF-8");
-		} catch (final UnsupportedEncodingException e1) {
-		    LOGGER.error("Error when URL encode the file name. Fallback without URL encode", e1);
-		    nameUrl = name;
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void ending(final Path folderScanned) {
+		if (httpFileServer.isFileToServeEmpty()) {
+			httpFileServer.stop();
 		}
-		rssFileItem.setUrl(httpUrlTemplate.replace("${file.name}", nameUrl));
-		// Rss file date
-		try {
-		    final FileTime lastModifiedTime = Files.getLastModifiedTime(entryPath);
-		    rssFileItem.setDate(new Date(lastModifiedTime.toMillis()));
-		} catch (final IOException e) {
-		    LOGGER.error("Cannot determine the modification date of {}", entryPath, e);
-		    rssFileItem.setDate(new Date());
-		}
-		// Rss file size
-		try {
-		    rssFileItem.setSize(Files.size(entryPath));
-		} catch (final Exception e) {
-		    LOGGER.error("Cannot compute the size of {}", entryPath, e);
-		    rssFileItem.setSize(0L);
-		}
-		rssFileItems.add(rssFileItem);
-	    });
 	}
-    }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void ending(final Path folderScanned) {
-	if (httpFileServer != null && httpFileServer.isFileToServeEmpty()) {
-	    stopHttpServer();
-	}
-    }
-
-    /**
-     * Start http server.
-     *
-     * @throws NumberFormatException
-     *             the number format exception
-     * @throws IOException
-     *             Signals that an I/O exception has occurred.
-     */
-    private synchronized void startHttpServer() throws NumberFormatException, IOException {
-	if (httpFileServer == null) {
-	    final String serverPort = configuration.getProperty("http.server.port", "80");
-	    final String serverIp = configuration.getProperty("http.server.ip", InetAddress.getLocalHost().getHostName());
-	    httpFileServer = new HttpFileServer(configuration, new InetSocketAddress(serverIp, Integer.valueOf(serverPort)));
-	    httpFileServer.start();
-	}
-    }
-
-    /**
-     * Stop http server.
-     */
-    private synchronized void stopHttpServer() {
-	if (httpFileServer != null) {
-	    httpFileServer.stop();
-	    httpFileServer = null;
-	}
-    }
 }

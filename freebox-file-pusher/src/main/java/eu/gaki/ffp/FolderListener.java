@@ -17,24 +17,29 @@ public interface FolderListener {
 	/**
 	 * Folder file.
 	 *
-	 * @param folderScanned the folder scanned
-	 * @param path the path
+	 * @param folderScanned
+	 *            the folder scanned
+	 * @param path
+	 *            the path
 	 * @return the list
-	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
 	 */
 	Collection<RssFileItem> folderFile(Path folderScanned, Path path) throws IOException;
 
 	/**
 	 * Ending.
 	 *
-	 * @param folderScanned the folder scanned
+	 * @param folderScanned
+	 *            the folder scanned
 	 */
 	void ending(Path folderScanned);
 
 	/**
 	 * Beginning.
 	 *
-	 * @param folderScanned the folder scanned
+	 * @param folderScanned
+	 *            the folder scanned
 	 * @return the object
 	 */
 	void beginning(Path folderScanned);

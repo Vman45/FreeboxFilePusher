@@ -39,7 +39,7 @@ public class FreeboxFilePusher implements Daemon {
 
 	/** The folders watcher runnable. */
 	private FoldersWatcherRunnable foldersWatcherRunnable;
-	
+
 	/** The rss file generator. */
 	private RssFileGenerator rssFileGenerator;
 
@@ -64,18 +64,18 @@ public class FreeboxFilePusher implements Daemon {
 		rssFileGenerator = new RssFileGenerator();
 		// Initialize the rss feed to empty
 		rssFileGenerator.generateRss(configuration, new ArrayList<RssFileItem>());
-		
+
 		// Create foldersWatcherRunnable
 		foldersWatcherRunnable = new FoldersWatcherRunnable(configuration, rssFileGenerator);
 
 		// Add configured listener
-		String enableBittorent = configuration.getProperty("ffp.enable.bittorrent", "false");
-		String enableHttp = configuration.getProperty("ffp.enable.http", "true");
-		
+		final String enableBittorent = configuration.getProperty("ffp.enable.bittorrent", "false");
+		final String enableHttp = configuration.getProperty("ffp.enable.http", "true");
+
 		if (Boolean.valueOf(enableBittorent)) {
 			foldersWatcherRunnable.addFolderListener(new eu.gaki.ffp.bittorrent.BittorrentFolderListener(configuration));
 		}
-		
+
 		if (Boolean.valueOf(enableHttp)) {
 			foldersWatcherRunnable.addFolderListener(new eu.gaki.ffp.http.HttpFolderListener(configuration));
 		}

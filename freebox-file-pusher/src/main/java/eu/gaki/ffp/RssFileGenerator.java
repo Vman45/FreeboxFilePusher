@@ -50,7 +50,8 @@ public class RssFileGenerator {
 	}
 
 	/**
-	 * Generate rss.
+	 * Generate RSS file if some difference are found with the previous
+	 * generated file.
 	 *
 	 * @param configuration
 	 *            the configuration

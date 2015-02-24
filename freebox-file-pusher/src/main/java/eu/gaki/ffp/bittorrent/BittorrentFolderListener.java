@@ -18,8 +18,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,9 +54,6 @@ public class BittorrentFolderListener implements FolderListener {
 	/** The configuration. */
 	private final Properties configuration;
 
-	/** The modify announce list. */
-	private boolean modifyAnnounceList;
-
 	/**
 	 * Instantiates a new bittorrent folder listener.
 	 *
@@ -70,83 +68,49 @@ public class BittorrentFolderListener implements FolderListener {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void beginning(final Path folderScanned) {
-		modifyAnnounceList = false;
+	public boolean isAlreadyPushed(final Path path) {
+		final Path torrentFile = computeTorrentFileName(path);
+		return tracker.isTracked(torrentFile);
+	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void scanPath(final Path folderScanned, final Path path) throws IOException {
+		// Share the file
+		Path torrentFile = computeTorrentFileName(path);
+		if (!Files.exists(torrentFile)) {
+			// Create torrent file
+			torrentFile = createTorrentFile(path);
+		}
+		startTracker();
+		if (tracker != null && !tracker.isTracked(torrentFile)) {
+			// Add file to tracker
+			final TrackedTorrent torrent = TrackedTorrent.load(torrentFile.toFile());
+			torrent.setSeederClient(new SeederClient(configuration, torrent, torrentFile, path));
+			tracker.announce(torrent);
+			LOGGER.info("Announce file: {}", torrentFile);
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void afterScans() {
 		if (tracker != null) {
+
 			// Remove tracked file which no more exist
 			final ArrayList<TrackedTorrent> trackedTorrents = new ArrayList<TrackedTorrent>(tracker.getTrackedTorrents());
 			trackedTorrents.forEach(torrent -> {
 				final SeederClient seederClient = torrent.getSeederClient();
 				if (seederClient == null || seederClient.getTorrentFile() == null || Files.notExists(seederClient.getTorrentFile())) {
 					tracker.remove(torrent);
-					modifyAnnounceList = true;
 					LOGGER.info("Remove announce file: {}", torrent.getName());
 				}
 			});
-		}
-	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public Collection<RssFileItem> folderFile(final Path folderScanned, final Path path) throws IOException {
-		final List<RssFileItem> rssFileItems = new ArrayList<>();
-
-		// Share the file
-		modifyAnnounceList |= shareByTorrent(path);
-
-		if (tracker != null) {
-			// Update the rss
-			if (modifyAnnounceList) {
-				// Publish RSS file with tracked torrent files
-				final Collection<TrackedTorrent> trackedTorrents = tracker.getTrackedTorrents();
-				final String torrentUrlTemplate = configuration.getProperty("torrent.url", "http://unknown/${file.name}");
-				trackedTorrents.forEach(torrent -> {
-					final RssFileItem rssFileItem = new RssFileItem();
-					// Rss link name
-					rssFileItem.setName(torrent.getName());
-					// Rss file URL
-					final String name = torrent.getName();
-					String nameUrl;
-					try {
-						nameUrl = URLEncoder.encode(name, "UTF-8");
-					} catch (final UnsupportedEncodingException e) {
-						LOGGER.error("Error when URL encode the file name. Fallback without URL encode", e);
-						nameUrl = name;
-					}
-					rssFileItem.setUrl(torrentUrlTemplate.replace("${file.name}", nameUrl + configuration.getProperty("torrent.extention", ".torrent")));
-					// Rss file date
-					final Path torrentFile = torrent.getSeederClient().getTorrentFile();
-					FileTime lastModifiedTime;
-					try {
-						lastModifiedTime = Files.getLastModifiedTime(torrentFile);
-						rssFileItem.setDate(new Date(lastModifiedTime.toMillis()));
-					} catch (final Exception e) {
-						LOGGER.error("Cannot determine the modification date of " + torrentFile, e);
-						rssFileItem.setDate(new Date());
-					}
-					// Rss file size
-					try {
-						rssFileItem.setSize(Files.size(torrentFile));
-					} catch (final Exception e) {
-						LOGGER.error("Cannot compute the size of " + path, e);
-						rssFileItem.setSize(0L);
-					}
-					rssFileItems.add(rssFileItem);
-				});
-			}
-		}
-		return rssFileItems;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void ending(final Path folderScanned) {
-		if (tracker != null) {
 			// If no more tracker torrent stop the tracker
 			if (tracker.getTrackedTorrents().size() == 0) {
 				stopTracker();
@@ -155,31 +119,48 @@ public class BittorrentFolderListener implements FolderListener {
 	}
 
 	/**
-	 * Share by torrent.
-	 *
-	 * @param dataFile
-	 *            the data file
-	 * @return true, if successful
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
+	 * {@inheritDoc}
 	 */
-	private boolean shareByTorrent(final Path dataFile) throws IOException {
-		boolean modifyTrackerAnnounceList = false;
-		Path torrentFile = computeTorrentFileName(dataFile);
-		if (!Files.exists(torrentFile)) {
-			// Create torrent file
-			torrentFile = createTorrentFile(dataFile);
-		}
-		startTracker();
-		if (tracker != null && !tracker.isTracked(torrentFile)) {
-			// Add file to tracker
-			final TrackedTorrent torrent = TrackedTorrent.load(torrentFile.toFile());
-			torrent.setSeederClient(new SeederClient(configuration, torrent, torrentFile, dataFile));
-			tracker.announce(torrent);
-			modifyTrackerAnnounceList = true;
-			LOGGER.info("Announce file: {}", torrentFile);
-		}
-		return modifyTrackerAnnounceList;
+	@Override
+	public Set<RssFileItem> getRssItemList() {
+		final Set<RssFileItem> rssFileItems = new HashSet<>();
+		// Publish RSS file with tracked torrent files
+		final Collection<TrackedTorrent> trackedTorrents = tracker.getTrackedTorrents();
+		final String torrentUrlTemplate = configuration.getProperty("torrent.url", "http://unknown/${file.name}");
+		trackedTorrents.forEach(torrent -> {
+			final RssFileItem rssFileItem = new RssFileItem();
+			// Rss link name
+			rssFileItem.setName(torrent.getName());
+			// Rss file URL
+			final String name = torrent.getName();
+			String nameUrl;
+			try {
+				nameUrl = URLEncoder.encode(name, "UTF-8");
+			} catch (final UnsupportedEncodingException e) {
+				LOGGER.error("Error when URL encode the file name. Fallback without URL encode", e);
+				nameUrl = name;
+			}
+			rssFileItem.setUrl(torrentUrlTemplate.replace("${file.name}", nameUrl + configuration.getProperty("torrent.extention", ".torrent")));
+			// Rss file date
+			final Path torrentFile = torrent.getSeederClient().getTorrentFile();
+			FileTime lastModifiedTime;
+			try {
+				lastModifiedTime = Files.getLastModifiedTime(torrentFile);
+				rssFileItem.setDate(new Date(lastModifiedTime.toMillis()));
+			} catch (final Exception e) {
+				LOGGER.error("Cannot determine the modification date of " + torrentFile, e);
+				rssFileItem.setDate(new Date());
+			}
+			// Rss file size
+			try {
+				rssFileItem.setSize(Files.size(torrentFile));
+			} catch (final Exception e) {
+				LOGGER.error("Cannot compute the size of " + torrentFile, e);
+				rssFileItem.setSize(0L);
+			}
+			rssFileItems.add(rssFileItem);
+		});
+		return rssFileItems;
 	}
 
 	/**

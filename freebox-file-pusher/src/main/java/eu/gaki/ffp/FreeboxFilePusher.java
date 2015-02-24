@@ -133,7 +133,7 @@ public class FreeboxFilePusher implements Daemon {
 	 */
 	@Override
 	public void start() throws Exception {
-		LOGGER.trace("Start...");
+		LOGGER.trace("Start watching...");
 		final String repeatInterval = configuration.getProperty("folder.scan.interval.seconds", DEFAULT_REPEAT_INTERVAL);
 		watchExecutor.scheduleWithFixedDelay(foldersWatcherRunnable, 10, Long.valueOf(repeatInterval), TimeUnit.SECONDS);
 	}
@@ -143,7 +143,7 @@ public class FreeboxFilePusher implements Daemon {
 	 */
 	@Override
 	public void stop() throws Exception {
-		LOGGER.trace("Stop...");
+		LOGGER.trace("Stop watching...");
 		watchExecutor.shutdown();
 	}
 
@@ -152,7 +152,7 @@ public class FreeboxFilePusher implements Daemon {
 	 */
 	@Override
 	public void destroy() {
-		LOGGER.trace("Destroy...");
+		LOGGER.trace("Destroy watching...");
 		watchExecutor = null;
 		configuration = null;
 		foldersWatcherRunnable = null;

@@ -41,9 +41,6 @@ public class HttpFileServer {
 	/** The configuration. */
 	private final Properties configuration;
 
-	/** The processor. */
-	// private final ContainerSocketProcessor processor;
-
 	/** The http file server executor. */
 	Executor httpFileServerExecutor = Executors.newSingleThreadExecutor();
 
@@ -62,7 +59,6 @@ public class HttpFileServer {
 		this.configuration = configuration;
 		this.address = address;
 		httpFileServerService = new HttpFileServerService(configuration, this);
-		// processor = new ContainerSocketProcessor(httpFileServerService);
 	}
 
 	/**
@@ -70,7 +66,6 @@ public class HttpFileServer {
 	 */
 	public void start() {
 		if (connection == null) {
-
 			httpFileServerExecutor.execute(() -> {
 				LOGGER.info("Starting HTTP file server on {}...", address);
 				try {
@@ -83,13 +78,6 @@ public class HttpFileServer {
 				}
 				LOGGER.info("HTTP file server start: {}", address);
 			});
-
-			// if (this.server == null || !this.server.isAlive()) {
-			// this.server = new ServerThread();
-			// this.server.setName("HTTP file server: " +
-			// this.address.getPort());
-			// this.server.start();
-			// }
 		}
 	}
 
@@ -199,29 +187,6 @@ public class HttpFileServer {
 		final String key = computeKey(path);
 		return filesToServe.containsKey(key);
 	}
-
-	// /**
-	// * The Class ServerThread.
-	// */
-	// private class ServerThread extends Thread {
-	//
-	// /**
-	// * {@inheritDoc}
-	// */
-	// @Override
-	// public void run() {
-	// LOGGER.info("Starting HTTP file server on {}...",
-	// HttpFileServer.this.address);
-	//
-	// try {
-	// connection.connect(address);
-	// } catch (final IOException ioe) {
-	// LOGGER.error("Could not start the HTTP file server: {}!",
-	// ioe.getMessage(), ioe);
-	// HttpFileServer.this.stop();
-	// }
-	// }
-	// }
 
 	/**
 	 * Removes the and delete file to serve.

@@ -3,14 +3,13 @@ package eu.gaki.ffp;
 import java.io.IOException;
 import java.nio.file.DirectoryIteratorException;
 import java.nio.file.DirectoryStream;
-import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -39,6 +38,9 @@ public class FoldersWatcherRunnable implements Runnable {
 	/** The torrent rss. */
 	private final RssFileGenerator rssFileGenerator;
 
+	/** The folders to watch. */
+	private final List<Path> foldersToWatch;
+
 	/**
 	 * Instantiates a new freebox file pusher runnable.
 	 *
@@ -50,6 +52,7 @@ public class FoldersWatcherRunnable implements Runnable {
 	public FoldersWatcherRunnable(final Properties configuration, final RssFileGenerator rssFileGenerator) {
 		this.configuration = configuration;
 		this.rssFileGenerator = rssFileGenerator;
+		this.foldersToWatch = getFoldersToWatch();
 	}
 
 	/**
@@ -62,19 +65,23 @@ public class FoldersWatcherRunnable implements Runnable {
 			final Set<RssFileItem> rssFileItems = new HashSet<>();
 
 			// Watch new files and folder in watched folder
-			final String folderLocation = configuration.getProperty("folders.to.watch", null);
-			if (folderLocation != null) {
-				final Path folder = FileSystems.getDefault().getPath(folderLocation);
-				listeners.forEach(listener -> listener.beginning(folder));
+			for (final Path folder : foldersToWatch) {
 
 				try (DirectoryStream<Path> stream = Files.newDirectoryStream(folder)) {
-					for (final Path file : stream) {
-						if (isFileFinishCopied(file)) {
+
+					for (final Path path : stream) {
+						// Is this path allready pushed
+						boolean alreadyPushed = false;
+						for (final FolderListener listener : listeners) {
+							if (listener.isAlreadyPushed(path)) {
+								alreadyPushed = true;
+								break;
+							}
+						}
+
+						if (!alreadyPushed && isFileFinishCopied(path)) {
 							for (final FolderListener listener : listeners) {
-								final Collection<RssFileItem> listenerRssFileItems = listener.folderFile(folder, file);
-								if (listenerRssFileItems != null) {
-									rssFileItems.addAll(listenerRssFileItems);
-								}
+								listener.scanPath(folder, path);
 							}
 						}
 					}
@@ -82,14 +89,42 @@ public class FoldersWatcherRunnable implements Runnable {
 					LOGGER.error(e.getMessage(), e);
 				}
 
-				listeners.forEach(listener -> listener.ending(folder));
 			}
 
+			// Call the after scans method
+			listeners.forEach(listener -> listener.afterScans());
+
+			// Get RSS items
+			listeners.forEach(listener -> {
+				rssFileItems.addAll(listener.getRssItemList());
+			});
+
+			// Generate RSS file
 			rssFileGenerator.generateRss(configuration, rssFileItems);
 
 		} catch (final Exception e) {
 			LOGGER.error("Cannot watch folder:" + e.getMessage(), e);
 		}
+	}
+
+	/**
+	 * Gets the folder to watch.
+	 *
+	 * @return the folder to watch
+	 */
+	private List<Path> getFoldersToWatch() {
+		final List<Path> foldersToWatch = new ArrayList<>();
+		final String key = "folders.to.watch.";
+		int i = 1;
+		while (configuration.containsKey(key + i)) {
+			final String folderLocation = configuration.getProperty(key + i, null);
+			if (folderLocation != null && folderLocation.trim().length() != 0) {
+				final Path folder = Paths.get(folderLocation);
+				foldersToWatch.add(folder);
+			}
+			i += 1;
+		}
+		return foldersToWatch;
 	}
 
 	/**

@@ -8,7 +8,6 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
@@ -68,39 +67,24 @@ public class HttpFolderListener implements FolderListener {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void beginning(final Path folderScanned) {
-		// Remove tracked file which no more exist
-		final Set<Map.Entry<String, Path>> filesToServe = httpFileServer.getFilesToServe();
-		filesToServe.forEach(entry -> {
-			final Path path = entry.getValue();
-			if (Files.notExists(path)) {
-				httpFileServer.removeFileToServe(path);
-				LOGGER.info("Remove http file: {}", path);
-			}
-		});
+	public boolean isAlreadyPushed(final Path path) {
+		return httpFileServer.isFileServed(path);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Collection<RssFileItem> folderFile(final Path folderScanned, final Path path) throws IOException {
-		final Set<RssFileItem> rssFileItems = new HashSet<>();
-
-		httpFileServer.start();
-		if (Files.exists(path) && !Files.isDirectory(path) && !httpFileServer.isFileServed(path)) {
+	public void scanPath(final Path folderScanned, final Path path) throws IOException {
+		if (Files.exists(path) && !Files.isDirectory(path) && !isAlreadyPushed(path)) {
 			httpFileServer.addFileToServe(path);
-		} else if (Files.isDirectory(path)) {
+		} else if (Files.isDirectory(path) && !isAlreadyPushed(filesCompresor.computeTarBZip2Name(path))) {
 			final String property = configuration.getProperty("ffp.compress.folder", "true");
 			if (Boolean.valueOf(property)) {
 				filesCompresor.compress(path);
 				FileUtils.deleteDirectory(path.toFile());
 			}
 		}
-
-		computeRssItemList(rssFileItems);
-
-		return rssFileItems;
 	}
 
 	/**
@@ -109,7 +93,10 @@ public class HttpFolderListener implements FolderListener {
 	 * @param rssFileItems
 	 *            the rss file items
 	 */
-	private void computeRssItemList(final Set<RssFileItem> rssFileItems) {
+	@Override
+	public Set<RssFileItem> getRssItemList() {
+		final Set<RssFileItem> rssFileItems = new HashSet<>();
+
 		// Publish RSS file with served files
 		final Set<Entry<String, Path>> filesToServe = httpFileServer.getFilesToServe();
 		final String httpUrlTemplate = configuration.getProperty("http.url", "http://unknown/${file.name}");
@@ -145,15 +132,30 @@ public class HttpFolderListener implements FolderListener {
 			}
 			rssFileItems.add(rssFileItem);
 		});
+
+		return rssFileItems;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void ending(final Path folderScanned) {
+	public void afterScans() {
+		// Remove file which no more exist
+		final Set<Map.Entry<String, Path>> filesToServe = httpFileServer.getFilesToServe();
+		filesToServe.forEach(entry -> {
+			final Path path = entry.getValue();
+			if (Files.notExists(path)) {
+				httpFileServer.removeFileToServe(path);
+				LOGGER.info("Remove http file: {}", path);
+			}
+		});
+
+		// If nothing to serve
 		if (httpFileServer.isFileToServeEmpty()) {
 			httpFileServer.stop();
+		} else {
+			httpFileServer.start();
 		}
 	}
 

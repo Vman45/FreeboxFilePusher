@@ -32,14 +32,14 @@ public class FilesCompresor {
 	/** The Constant LOGGER. */
 	private static final Logger LOGGER = LoggerFactory.getLogger(HttpFolderListener.class);
 
-	/** The Constant TXZ. */
-	private static final String TXZ = ".tbz2";
+	/** The Constant TBZIP2. */
+	private static final String TBZIP2 = ".tbz2";
 
 	/** The configuration. */
 	private final Properties configuration;
 
 	/**
-	 * Instantiates a new files compresor.
+	 * Instantiates a new files compressor.
 	 *
 	 * @param configuration
 	 *            the configuration
@@ -61,20 +61,18 @@ public class FilesCompresor {
 		final Instant startDate = Instant.now();
 		LOGGER.info("Start compress: " + pathToCompress);
 
-		// Tar
+		// Tar and BZip2
 		Stream<Path> walkFiltered = null;
-		final Path tarXzFile = computeTarXzName(pathToCompress);
-		try (final OutputStream tarXzOutputStream = Files.newOutputStream(tarXzFile, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-				final OutputStream tarXzBufferedOutputStream = new BufferedOutputStream(tarXzOutputStream);
-				final OutputStream xzOutputStream = new BZip2CompressorOutputStream(tarXzBufferedOutputStream, 5);
-				final TarArchiveOutputStream tarOutputStream = new TarArchiveOutputStream(xzOutputStream);
+		final Path tarBZip2File = computeTarBZip2Name(pathToCompress);
+		try (final OutputStream tarBZip2OutputStream = Files.newOutputStream(tarBZip2File, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+				final OutputStream tarBZip2BufferedOutputStream = new BufferedOutputStream(tarBZip2OutputStream);
+				final OutputStream bZip2OutputStream = new BZip2CompressorOutputStream(tarBZip2BufferedOutputStream, 3);
+				final TarArchiveOutputStream tarOutputStream = new TarArchiveOutputStream(bZip2OutputStream);
 				Stream<Path> walk = Files.walk(pathToCompress, FileVisitOption.FOLLOW_LINKS);) {
 
 			tarOutputStream.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX);
 			tarOutputStream.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_POSIX);
 
-			// final String rootPath = pathToCompress.toString() +
-			// File.pathSeparator;
 			walkFiltered = walk.filter(p -> {
 				final String name = p.getFileName().toString();
 				final String extension = FilenameUtils.getExtension(name);
@@ -85,7 +83,7 @@ public class FilesCompresor {
 					// the root folder)
 					include = !p.equals(pathToCompress);
 				} else {
-					// Exclude some file extention
+					// Exclude some file extension
 					include = !excludeExtention.contains(extension);
 				}
 
@@ -95,8 +93,6 @@ public class FilesCompresor {
 			walkFiltered.forEach(t -> {
 				try {
 					// Add the file to the TAR
-					// final String relativePath =
-					// t.toString().replace(rootPath, "");
 					final Path relativePath = pathToCompress.relativize(t);
 					final TarArchiveEntry entry = new TarArchiveEntry(t.toFile(), relativePath.normalize().toString());
 					tarOutputStream.putArchiveEntry(entry);
@@ -125,14 +121,13 @@ public class FilesCompresor {
 
 		LOGGER.info("Stop compress: " + pathToCompress + " took " + between + " secondes");
 
-		// XZ the tar
-		return tarXzFile;
+		return tarBZip2File;
 	}
 
 	/**
-	 * Gets the extentions to exclude.
+	 * Gets the extensions to exclude.
 	 *
-	 * @return the extentions to exclude
+	 * @return the extensions to exclude
 	 */
 	private Collection<String> getExcludeExtensions() {
 		final Collection<String> excludeExtensions = new HashSet<>();
@@ -143,15 +138,15 @@ public class FilesCompresor {
 	}
 
 	/**
-	 * Compute tar xz name.
+	 * Compute tar bzip2 name.
 	 *
 	 * @param pathToCompress
 	 *            the path to compress
 	 * @return the path
 	 */
-	private Path computeTarXzName(final Path pathToCompress) {
-		final Path tarXzFile = pathToCompress.getParent().resolve(pathToCompress.getFileName() + TXZ);
-		return tarXzFile;
+	public Path computeTarBZip2Name(final Path pathToCompress) {
+		final Path tarBZip2File = pathToCompress.getParent().resolve(pathToCompress.getFileName() + TBZIP2);
+		return tarBZip2File;
 	}
 
 }

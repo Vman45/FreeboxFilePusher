@@ -69,8 +69,12 @@ public class BittorrentFolderListener implements FolderListener {
 	 */
 	@Override
 	public boolean isAlreadyPushed(final Path path) {
-		final Path torrentFile = computeTorrentFileName(path);
-		return tracker.isTracked(torrentFile);
+		boolean tracked = false;
+		if (tracker != null) {
+			final Path torrentFile = computeTorrentFileName(path);
+			tracked = tracker.isTracked(torrentFile);
+		}
+		return tracked;
 	}
 
 	/**
@@ -124,42 +128,61 @@ public class BittorrentFolderListener implements FolderListener {
 	@Override
 	public Set<RssFileItem> getRssItemList() {
 		final Set<RssFileItem> rssFileItems = new HashSet<>();
-		// Publish RSS file with tracked torrent files
-		final Collection<TrackedTorrent> trackedTorrents = tracker.getTrackedTorrents();
-		final String torrentUrlTemplate = configuration.getProperty("torrent.url", "http://unknown/${file.name}");
-		trackedTorrents.forEach(torrent -> {
-			final RssFileItem rssFileItem = new RssFileItem();
-			// Rss link name
-			rssFileItem.setName(torrent.getName());
-			// Rss file URL
-			final String name = torrent.getName();
-			String nameUrl;
-			try {
-				nameUrl = URLEncoder.encode(name, "UTF-8");
-			} catch (final UnsupportedEncodingException e) {
-				LOGGER.error("Error when URL encode the file name. Fallback without URL encode", e);
-				nameUrl = name;
-			}
-			rssFileItem.setUrl(torrentUrlTemplate.replace("${file.name}", nameUrl + configuration.getProperty("torrent.extention", ".torrent")));
-			// Rss file date
-			final Path torrentFile = torrent.getSeederClient().getTorrentFile();
-			FileTime lastModifiedTime;
-			try {
-				lastModifiedTime = Files.getLastModifiedTime(torrentFile);
-				rssFileItem.setDate(new Date(lastModifiedTime.toMillis()));
-			} catch (final Exception e) {
-				LOGGER.error("Cannot determine the modification date of " + torrentFile, e);
-				rssFileItem.setDate(new Date());
-			}
-			// Rss file size
-			try {
-				rssFileItem.setSize(Files.size(torrentFile));
-			} catch (final Exception e) {
-				LOGGER.error("Cannot compute the size of " + torrentFile, e);
-				rssFileItem.setSize(0L);
-			}
-			rssFileItems.add(rssFileItem);
-		});
+		if (tracker != null) {
+			// Publish RSS file with tracked torrent files
+			final Collection<TrackedTorrent> trackedTorrents = tracker
+					.getTrackedTorrents();
+			final String torrentUrlTemplate = configuration.getProperty(
+					"torrent.url", "http://unknown/${file.name}");
+			trackedTorrents
+					.forEach(torrent -> {
+						final RssFileItem rssFileItem = new RssFileItem();
+						// Rss link name
+						rssFileItem.setName(torrent.getName());
+						// Rss file URL
+						final String name = torrent.getName();
+						String nameUrl;
+						try {
+							nameUrl = URLEncoder.encode(name, "UTF-8").replace("+", "%20");
+						} catch (final UnsupportedEncodingException e) {
+							LOGGER.error(
+									"Error when URL encode the file name. Fallback without URL encode",
+									e);
+							nameUrl = name;
+						}
+						rssFileItem.setUrl(torrentUrlTemplate.replace(
+								"${file.name}",
+								nameUrl
+										+ configuration
+												.getProperty(
+														"torrent.extention",
+														".torrent")));
+						// Rss file date
+						final Path torrentFile = torrent.getSeederClient()
+								.getTorrentFile();
+						FileTime lastModifiedTime;
+						try {
+							lastModifiedTime = Files
+									.getLastModifiedTime(torrentFile);
+							rssFileItem.setDate(new Date(lastModifiedTime
+									.toMillis()));
+						} catch (final Exception e) {
+							LOGGER.error(
+									"Cannot determine the modification date of "
+											+ torrentFile, e);
+							rssFileItem.setDate(new Date());
+						}
+						// Rss file size
+						try {
+							rssFileItem.setSize(Files.size(torrentFile));
+						} catch (final Exception e) {
+							LOGGER.error("Cannot compute the size of "
+									+ torrentFile, e);
+							rssFileItem.setSize(0L);
+						}
+						rssFileItems.add(rssFileItem);
+					});
+		}
 		return rssFileItems;
 	}
 

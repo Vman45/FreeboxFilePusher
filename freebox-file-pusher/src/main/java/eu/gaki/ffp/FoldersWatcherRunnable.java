@@ -67,28 +67,32 @@ public class FoldersWatcherRunnable implements Runnable {
 			// Watch new files and folder in watched folder
 			for (final Path folder : foldersToWatch) {
 
-				try (DirectoryStream<Path> stream = Files.newDirectoryStream(folder)) {
+				if (Files.exists(folder)) {
+					try (DirectoryStream<Path> stream = Files
+							.newDirectoryStream(folder)) {
 
-					for (final Path path : stream) {
-						// Is this path allready pushed
-						boolean alreadyPushed = false;
-						for (final FolderListener listener : listeners) {
-							if (listener.isAlreadyPushed(path)) {
-								alreadyPushed = true;
-								break;
-							}
-						}
-
-						if (!alreadyPushed && isFileFinishCopied(path)) {
+						for (final Path path : stream) {
+							// Is this path allready pushed
+							boolean alreadyPushed = false;
 							for (final FolderListener listener : listeners) {
-								listener.scanPath(folder, path);
+								if (listener.isAlreadyPushed(path)) {
+									alreadyPushed = true;
+									break;
+								}
+							}
+
+							if (!alreadyPushed && isFileFinishCopied(path)) {
+								for (final FolderListener listener : listeners) {
+									listener.scanPath(folder, path);
+								}
 							}
 						}
+					} catch (IOException | DirectoryIteratorException e) {
+						LOGGER.error(e.getMessage(), e);
 					}
-				} catch (IOException | DirectoryIteratorException e) {
-					LOGGER.error(e.getMessage(), e);
+				} else {
+					LOGGER.warn("The folder " + folder + " doesn't exist.");
 				}
-
 			}
 
 			// Call the after scans method

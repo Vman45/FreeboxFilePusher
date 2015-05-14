@@ -109,7 +109,7 @@ public class HttpFolderListener implements FolderListener {
 			final String name = entry.getKey();
 			String nameUrl;
 			try {
-				nameUrl = URLEncoder.encode(name, "UTF-8");
+				nameUrl = URLEncoder.encode(name, "UTF-8").replace("+", "%20");
 			} catch (final UnsupportedEncodingException e1) {
 				LOGGER.error("Error when URL encode the file name. Fallback without URL encode", e1);
 				nameUrl = name;

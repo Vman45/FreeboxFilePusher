@@ -13,6 +13,7 @@ import java.net.URLEncoder;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,6 +23,8 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
+import org.apache.commons.compress.compressors.FileNameUtil;
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,14 +91,21 @@ public class BittorrentFolderListener implements FolderListener {
 			// Create torrent file
 			torrentFile = createTorrentFile(path);
 		}
-		startTracker();
-		if (tracker != null && !tracker.isTracked(torrentFile)) {
-			// Add file to tracker
-			final TrackedTorrent torrent = TrackedTorrent.load(torrentFile.toFile());
-			torrent.setSeederClient(new SeederClient(configuration, torrent, torrentFile, path));
-			tracker.announce(torrent);
-			LOGGER.info("Announce file: {}", torrentFile);
+		if (torrentFile != null && Files.exists(torrentFile)) {
+			startTracker();
+			if (tracker != null && !tracker.isTracked(torrentFile)) {
+				// Add file to tracker
+				final TrackedTorrent torrent = TrackedTorrent.load(torrentFile
+						.toFile());
+				torrent.setSeederClient(new SeederClient(configuration,
+						torrent, torrentFile, path));
+				tracker.announce(torrent);
+				LOGGER.info("Announce file: {}", torrentFile);
+			}
+		} else {
+			LOGGER.error("cannot create torrent file.");
 		}
+			
 	}
 
 	/**
@@ -140,7 +150,7 @@ public class BittorrentFolderListener implements FolderListener {
 						// Rss link name
 						rssFileItem.setName(torrent.getName());
 						// Rss file URL
-						final String name = torrent.getName();
+						final String name = torrent.getSeederClient().getTorrentFile().getFileName().toString();
 						String nameUrl;
 						try {
 							nameUrl = URLEncoder.encode(name, "UTF-8").replace("+", "%20");
@@ -152,11 +162,7 @@ public class BittorrentFolderListener implements FolderListener {
 						}
 						rssFileItem.setUrl(torrentUrlTemplate.replace(
 								"${file.name}",
-								nameUrl
-										+ configuration
-												.getProperty(
-														"torrent.extention",
-														".torrent")));
+								nameUrl));
 						// Rss file date
 						final Path torrentFile = torrent.getSeederClient()
 								.getTorrentFile();
@@ -231,8 +237,8 @@ public class BittorrentFolderListener implements FolderListener {
 	private Path computeTorrentFileName(final Path file) {
 		Path torrentFile;
 
-		final String fileNameUrl = file.getFileName().toString();
-
+		String fileNameUrl = FilenameUtils.getBaseName(file.getFileName().toString());
+		
 		torrentFile = FileSystems.getDefault().getPath(configuration.getProperty("torrent.file.folder", "www-data"),
 				fileNameUrl + configuration.getProperty("torrent.extention", ".torrent"));
 

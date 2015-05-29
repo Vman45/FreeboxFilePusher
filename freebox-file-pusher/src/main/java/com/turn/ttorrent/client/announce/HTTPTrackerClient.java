@@ -15,11 +15,6 @@
  */
 package com.turn.ttorrent.client.announce;
 
-import com.turn.ttorrent.client.SharedTorrent;
-import com.turn.ttorrent.common.Peer;
-import com.turn.ttorrent.common.protocol.TrackerMessage.*;
-import com.turn.ttorrent.common.protocol.http.*;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -30,9 +25,15 @@ import java.net.URL;
 import java.nio.ByteBuffer;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.turn.ttorrent.client.SharedTorrent;
+import com.turn.ttorrent.common.Peer;
+import com.turn.ttorrent.common.protocol.TrackerMessage.AnnounceRequestMessage;
+import com.turn.ttorrent.common.protocol.TrackerMessage.MessageValidationException;
+import com.turn.ttorrent.common.protocol.http.HTTPAnnounceRequestMessage;
+import com.turn.ttorrent.common.protocol.http.HTTPTrackerMessage;
 
 /**
  * Announcer for HTTP trackers.
@@ -77,7 +78,7 @@ public class HTTPTrackerClient extends TrackerClient {
 	@Override
 	public void announce(AnnounceRequestMessage.RequestEvent event,
 		boolean inhibitEvents) throws AnnounceException {
-		logger.info("Announcing{} to tracker with {}U/{}D/{}L bytes...",
+		logger.trace("Announcing{} to tracker with {}U/{}D/{}L bytes...",
 			new Object[] {
 				this.formatAnnounceEvent(event),
 				this.torrent.getUploaded(),
@@ -105,6 +106,7 @@ public class HTTPTrackerClient extends TrackerClient {
 		InputStream in = null;
 		try {
 			conn = (HttpURLConnection)target.openConnection();
+			conn.setReadTimeout(120000);
 			in = conn.getInputStream();
 		} catch (IOException ioe) {
 			if (conn != null) {
@@ -119,8 +121,7 @@ public class HTTPTrackerClient extends TrackerClient {
 			throw new AnnounceException("No response or unreachable tracker!");
 		}
 
-		try {
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
 			baos.write(in);
 
 			// Parse and handle the response

@@ -15,7 +15,6 @@
  */
 package com.turn.ttorrent.tracker;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -65,7 +64,7 @@ public class Tracker {
     private final InetSocketAddress address;
 
     /** The in-memory repository of torrents tracked. */
-    private final ConcurrentMap<String, TrackedTorrent> torrents;
+    private final ConcurrentMap<String, TrackedTorrent> torrents = new ConcurrentHashMap<>();
 
     private Thread tracker;
     private Thread collector;
@@ -106,8 +105,6 @@ public class Tracker {
     public Tracker(final InetSocketAddress address, final String version)
 	    throws IOException {
 	this.address = address;
-
-	this.torrents = new ConcurrentHashMap<String, TrackedTorrent>();
 	this.connection = new SocketConnection(new ContainerSocketProcessor(new TrackerService(version, this.torrents)));
     }
 

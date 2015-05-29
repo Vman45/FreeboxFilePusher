@@ -15,16 +15,6 @@
  */
 package com.turn.ttorrent.client;
 
-import com.turn.ttorrent.client.announce.Announce;
-import com.turn.ttorrent.client.announce.AnnounceException;
-import com.turn.ttorrent.client.announce.AnnounceResponseListener;
-import com.turn.ttorrent.client.peer.PeerActivityListener;
-import com.turn.ttorrent.client.peer.SharingPeer;
-import com.turn.ttorrent.common.Peer;
-import com.turn.ttorrent.common.Torrent;
-import com.turn.ttorrent.common.protocol.PeerMessage;
-import com.turn.ttorrent.common.protocol.TrackerMessage;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -46,6 +36,16 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.turn.ttorrent.client.announce.Announce;
+import com.turn.ttorrent.client.announce.AnnounceException;
+import com.turn.ttorrent.client.announce.AnnounceResponseListener;
+import com.turn.ttorrent.client.peer.PeerActivityListener;
+import com.turn.ttorrent.client.peer.SharingPeer;
+import com.turn.ttorrent.common.Peer;
+import com.turn.ttorrent.common.Torrent;
+import com.turn.ttorrent.common.protocol.PeerMessage;
+import com.turn.ttorrent.common.protocol.TrackerMessage;
 
 /**
  * A pure-java BitTorrent client.
@@ -320,90 +320,95 @@ public class Client extends Observable implements Runnable,
 	public void run() {
 		// First, analyze the torrent's local data.
 		try {
-			this.setState(ClientState.VALIDATING);
-			this.torrent.init();
-		} catch (IOException ioe) {
-			logger.warn("Error while initializing torrent data: {}!",
-				ioe.getMessage(), ioe);
-		} catch (InterruptedException ie) {
-			logger.warn("Client was interrupted during initialization. " +
-					"Aborting right away.");
-		} finally {
-			if (!this.torrent.isInitialized()) {
-				try {
-					this.service.close();
-				} catch (IOException ioe) {
-					logger.warn("Error while releasing bound channel: {}!",
-						ioe.getMessage(), ioe);
-				}
+			try {
+				this.setState(ClientState.VALIDATING);
+				this.torrent.init();
+			} catch (IOException ioe) {
+				logger.warn("Error while initializing torrent data: {}!",
+					ioe.getMessage(), ioe);
+			} catch (InterruptedException ie) {
+				logger.warn("Client was interrupted during initialization. " +
+						"Aborting right away.");
+			} finally {
+				if (!this.torrent.isInitialized()) {
+					try {
+						this.service.close();
+					} catch (IOException ioe) {
+						logger.warn("Error while releasing bound channel: {}!",
+							ioe.getMessage(), ioe);
+					}
 
-				this.setState(ClientState.ERROR);
-				this.torrent.close();
+					this.setState(ClientState.ERROR);
+					this.torrent.close();
+					return;
+				}
+			}
+
+			// Initial completion test
+			if (this.torrent.isComplete()) {
+				this.seed();
+			} else {
+				this.setState(ClientState.SHARING);
+			}
+
+			// Detect early stop
+			if (this.stop) {
+				logger.info("Download is complete and no seeding was requested.");
+				this.finish();
 				return;
 			}
-		}
 
-		// Initial completion test
-		if (this.torrent.isComplete()) {
-			this.seed();
-		} else {
-			this.setState(ClientState.SHARING);
-		}
+			this.announce.start();
+			this.service.start();
 
-		// Detect early stop
-		if (this.stop) {
-			logger.info("Download is complete and no seeding was requested.");
-			this.finish();
-			return;
-		}
+			int optimisticIterations = 0;
+			int rateComputationIterations = 0;
 
-		this.announce.start();
-		this.service.start();
+			while (!this.stop) {
+				optimisticIterations =
+					(optimisticIterations == 0 ?
+					 Client.OPTIMISTIC_UNCHOKE_ITERATIONS :
+					 optimisticIterations - 1);
 
-		int optimisticIterations = 0;
-		int rateComputationIterations = 0;
+				rateComputationIterations =
+					(rateComputationIterations == 0 ?
+					 Client.RATE_COMPUTATION_ITERATIONS :
+					 rateComputationIterations - 1);
 
-		while (!this.stop) {
-			optimisticIterations =
-				(optimisticIterations == 0 ?
-				 Client.OPTIMISTIC_UNCHOKE_ITERATIONS :
-				 optimisticIterations - 1);
-
-			rateComputationIterations =
-				(rateComputationIterations == 0 ?
-				 Client.RATE_COMPUTATION_ITERATIONS :
-				 rateComputationIterations - 1);
-
-			try {
-				this.unchokePeers(optimisticIterations == 0);
-				this.info();
-				if (rateComputationIterations == 0) {
-					this.resetPeerRates();
+				try {
+					this.unchokePeers(optimisticIterations == 0);
+					this.info();
+					if (rateComputationIterations == 0) {
+						this.resetPeerRates();
+					}
+				} catch (Exception e) {
+					logger.error("An exception occurred during the BitTorrent " +
+							"client main loop execution!", e);
 				}
-			} catch (Exception e) {
-				logger.error("An exception occurred during the BitTorrent " +
-						"client main loop execution!", e);
+
+				try {
+					Thread.sleep(Client.UNCHOKING_FREQUENCY*1000);
+				} catch (InterruptedException ie) {
+					logger.trace("BitTorrent main loop interrupted.");
+				}
 			}
 
+			logger.debug("Stopping BitTorrent client connection service " +
+					"and announce threads...");
+
+			this.service.stop();
 			try {
-				Thread.sleep(Client.UNCHOKING_FREQUENCY*1000);
-			} catch (InterruptedException ie) {
-				logger.trace("BitTorrent main loop interrupted.");
+				this.service.close();
+			} catch (IOException ioe) {
+				logger.warn("Error while releasing bound channel: {}!",
+					ioe.getMessage(), ioe);
+			}
+		} finally {
+			if (this.announce != null) {
+				this.announce.stop();
 			}
 		}
 
-		logger.debug("Stopping BitTorrent client connection service " +
-				"and announce threads...");
-
-		this.service.stop();
-		try {
-			this.service.close();
-		} catch (IOException ioe) {
-			logger.warn("Error while releasing bound channel: {}!",
-				ioe.getMessage(), ioe);
-		}
-
-		this.announce.stop();
 
 		// Close all peer connections
 		logger.debug("Closing all remaining peer connections...");
@@ -448,7 +453,7 @@ public class Client extends Observable implements Runnable,
 			ul += peer.getULRate().get();
 		}
 
-		logger.info("{} {}/{} pieces ({}%) [{}/{}] with {}/{} peers at {}/{} kB/s.",
+		logger.trace("{} {}/{} pieces ({}%) [{}/{}] with {}/{} peers at {}/{} kB/s.",
 			new Object[] {
 				this.getState().name(),
 				this.torrent.getCompletedPieces().cardinality(),
@@ -680,7 +685,7 @@ public class Client extends Observable implements Runnable,
 			return;
 		}
 
-		logger.info("Got {} peer(s) in tracker response.", peers.size());
+		logger.trace("Got {} peer(s) in tracker response.", peers.size());
 
 		if (!this.service.isAlive()) {
 			logger.warn("Connection handler service is not available.");

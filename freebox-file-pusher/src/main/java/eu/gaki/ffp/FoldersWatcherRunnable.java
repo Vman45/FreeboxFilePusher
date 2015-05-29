@@ -87,7 +87,7 @@ public class FoldersWatcherRunnable implements Runnable {
 								}
 							}
 						}
-					} catch (IOException | DirectoryIteratorException e) {
+					} catch (Exception e) {
 						LOGGER.error(e.getMessage(), e);
 					}
 				} else {

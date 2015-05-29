@@ -7,10 +7,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -172,8 +170,8 @@ public class HttpFileServer {
 	 *
 	 * @return the files to serve
 	 */
-	public Set<Map.Entry<String, Path>> getFilesToServe() {
-		return new HashSet<java.util.Map.Entry<String, Path>>(filesToServe.entrySet());
+	public Map<String, Path> getFilesToServe() {
+		return new HashMap<>(filesToServe);
 	}
 
 	/**

@@ -68,7 +68,7 @@ public class SeederClient {
 	 */
 	public synchronized void startSeeding() {
 		try {
-			if (totalNumberOfClient < 6 && seeder == null && Files.exists(dataFile)) {
+			if (totalNumberOfClient < 2 && seeder == null && Files.exists(dataFile)) {
 				totalNumberOfClient += 1;
 				final SharedTorrent sharedTorrent = new SharedTorrent(torrent, dataFile.getParent().toFile(), true);
 				final String trackerIp = configuration.getProperty("torrent.tracker.ip", InetAddress.getLocalHost().getHostName());
@@ -87,11 +87,12 @@ public class SeederClient {
 	public synchronized void stopSeeding() {
 		try {
 			if (seeder != null) {
-				seeder.stop();
+				seeder.stop(true);
 				totalNumberOfClient -= 1;
 				LOGGER.info("Stoped seeding {}. Number of client {}", torrent.getName(), totalNumberOfClient);
 				seeder = null;
 			}
+			System.gc();
 		} catch (final Exception e) {
 			LOGGER.error("Cannot stop seeding:" + e.getMessage(), e);
 		}
@@ -102,11 +103,17 @@ public class SeederClient {
 	 */
 	public synchronized void stopAndDelete() {
 		try {
+			LOGGER.info("Trying to stop and delete {} and {}. Number of client {}", new Object[]{torrentFile, dataFile, totalNumberOfClient});
 			stopSeeding();
 			final String deleteString = configuration.getProperty("delete.after.sending", "false");
+			LOGGER.info("Delete after sending: {}", deleteString);
 			if (Boolean.valueOf(deleteString)) {
-				Files.delete(dataFile);
-				Files.delete(torrentFile);
+				if(!Files.deleteIfExists(dataFile)){
+					LOGGER.info("Cannot delete file {}", dataFile);
+				}
+				if(!Files.deleteIfExists(torrentFile)){
+					LOGGER.info("Cannot delete torrent file {}", torrentFile);
+				};
 				LOGGER.info("Delete torrent, file and remove from tracker {}. Number of client {}", torrent.getName(), totalNumberOfClient);
 			}
 		} catch (final Exception e) {
@@ -121,38 +128,48 @@ public class SeederClient {
 	 *            the torrent
 	 */
 	public void enableDisableSeeding(final TrackedTorrent torrent) {
-		// Enable disable seeder client on demand
-		// A peer want to download the torrent
-		if (torrent.leechers() > 0 && seeder == null) {
-			LOGGER.info(torrentFile + ": {} leechers, {} seeders", torrent.leechers(), torrent.seeders());
-			// No seeder for this torrent, we create a client seeder
-			startSeeding();
-		} else if (torrent.leechers() == 0) {
-			// No more leecher
-			if (noLeecherDate == null) {
-				LOGGER.info(torrentFile + ": {} leechers, {} seeders", torrent.leechers(), torrent.seeders());
-				noLeecherDate = new Date();
-				LOGGER.info("No more leecher for file: {}", torrentFile);
-			}
+//		synchronized (torrent) {
+			// Enable disable seeder client on demand
+			// A peer want to download the torrent
+			int leechers = torrent.leechers();
+			int seeders = torrent.seeders();
+			if (leechers > 0 && seeder == null) {
+				LOGGER.info(torrentFile + ": {} leechers, {} seeders",
+						leechers, seeders);
+				// No seeder for this torrent, we create a client seeder
+				startSeeding();
+			} else if (leechers <= 0) {
+				// No more leecher
+				if (noLeecherDate == null) {
+					noLeecherDate = new Date();
+					LOGGER.info(
+							"No more leecher for file: {}: {} leechers, {} seeders",
+							new Object[] { torrentFile, leechers, seeders });
+				}
 
-			if (torrent.seeders() >= 2) {
-				LOGGER.info(torrentFile + ": {} leechers, {} seeders", torrent.leechers(), torrent.seeders());
-				// File is sent completely
-				stopAndDelete();
-				noLeecherDate = null;
-				torrent.setSeederClient(null);
-			} else {
-				// One one seeder (us) probably the bittorent client put the
-				// torrent in stalled state (he don't yet see
-				// the seeder) so we wait
-				final String keepActiveString = configuration.getProperty("torrent.keep.seeder.active.millisecond", "600000");
-				if (System.currentTimeMillis() > noLeecherDate.getTime() + Long.valueOf(keepActiveString)) {
-					LOGGER.info(torrentFile + ": {} leechers, {} seeders", torrent.leechers(), torrent.seeders());
-					stopSeeding();
+				if (seeders >= 2) {
+					LOGGER.info(torrentFile + ": {} leechers, {} seeders",
+							leechers, seeders);
+					// File is sent completely
+					stopAndDelete();
 					noLeecherDate = null;
+					torrent.setSeederClient(null);
+				} else {
+					// One one seeder (us) probably the bittorent client put the
+					// torrent in stalled state (he don't yet see
+					// the seeder) so we wait
+					final String keepActiveString = configuration.getProperty(
+							"torrent.keep.seeder.active.millisecond", "600000");
+					if (System.currentTimeMillis() > noLeecherDate.getTime()
+							+ Long.valueOf(keepActiveString)) {
+						LOGGER.info(torrentFile + ": {} leechers, {} seeders",
+								leechers, seeders);
+						stopSeeding();
+						noLeecherDate = null;
+					}
 				}
 			}
-		}
+//		}
 
 	}
 

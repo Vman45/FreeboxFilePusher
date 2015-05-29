@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -49,6 +50,10 @@ public class FreeboxFilePusher implements Daemon {
 	@Override
 	public void init(final DaemonContext context) throws DaemonInitException, Exception {
 		LOGGER.trace("Initialize...");
+		
+		System.setProperty("file.encoding", "UTF-8");
+		Locale.setDefault(Locale.FRANCE);
+		
 		// Construct objects and initialize variables here. You can access the
 		// command line arguments that would normally be passed to your main()
 		// method as follows

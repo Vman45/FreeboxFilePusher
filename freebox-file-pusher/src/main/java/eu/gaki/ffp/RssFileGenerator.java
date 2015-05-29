@@ -6,7 +6,6 @@ import java.nio.channels.FileChannel;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Properties;
@@ -23,9 +22,6 @@ public class RssFileGenerator {
 
 	/** The Constant LOGGER. */
 	private static final Logger LOGGER = LoggerFactory.getLogger(RssFileGenerator.class);
-
-	/** The Constant DATE_PARSER: Mon, 22 Jul 2013 00:12:38 +0200 */
-	private static final DateFormat DATE_PARSER = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
 
 	/** The main rss. */
 	private String mainRss;
@@ -82,7 +78,7 @@ public class RssFileGenerator {
 					item = itemRss.replace("${file.name}", rssFileItem.getName());
 					item = item.replace("${file.url}", rssFileItem.getUrl());
 					item = item.replace("${file.size}", Long.toString(rssFileItem.getSize()));
-					item = item.replace("${file.date}", DATE_PARSER.format(rssFileItem.getDate()));
+					item = item.replace("${file.date}", new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z").format(rssFileItem.getDate()));
 					items.append(item);
 				}
 

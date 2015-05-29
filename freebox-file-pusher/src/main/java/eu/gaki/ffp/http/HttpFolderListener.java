@@ -11,7 +11,6 @@ import java.nio.file.attribute.FileTime;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 
@@ -98,9 +97,9 @@ public class HttpFolderListener implements FolderListener {
 		final Set<RssFileItem> rssFileItems = new HashSet<>();
 
 		// Publish RSS file with served files
-		final Set<Entry<String, Path>> filesToServe = httpFileServer.getFilesToServe();
+		final Map<String, Path> filesToServe = httpFileServer.getFilesToServe();
 		final String httpUrlTemplate = configuration.getProperty("http.url", "http://unknown/${file.name}");
-		filesToServe.forEach(entry -> {
+		filesToServe.entrySet().forEach(entry -> {
 			final Path entryPath = entry.getValue();
 			final RssFileItem rssFileItem = new RssFileItem();
 			// Rss link name
@@ -142,8 +141,8 @@ public class HttpFolderListener implements FolderListener {
 	@Override
 	public void afterScans() {
 		// Remove file which no more exist
-		final Set<Map.Entry<String, Path>> filesToServe = httpFileServer.getFilesToServe();
-		filesToServe.forEach(entry -> {
+		final Map<String, Path> filesToServe = httpFileServer.getFilesToServe();
+		filesToServe.entrySet().forEach(entry -> {
 			final Path path = entry.getValue();
 			if (Files.notExists(path)) {
 				httpFileServer.removeFileToServe(path);

@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
-import org.apache.commons.io.IOUtils;
 import org.simpleframework.http.Request;
 import org.simpleframework.http.Response;
 import org.simpleframework.http.Status;
@@ -115,15 +114,11 @@ public class TrackerService implements Container {
 	    return;
 	}
 
-	OutputStream body = null;
-	try {
-	    body = response.getOutputStream();
+	try (OutputStream body = response.getOutputStream()) {
 	    this.process(request, response, body);
 	    body.flush();
 	} catch (final IOException ioe) {
 	    logger.warn("Error while writing response: {}!", ioe.getMessage());
-	} finally {
-	    IOUtils.closeQuietly(body);
 	}
     }
 
@@ -167,7 +162,7 @@ public class TrackerService implements Container {
 	final TrackedTorrent torrent = this.torrents.get(
 		announceRequest.getHexInfoHash());
 	if (torrent == null) {
-	    logger.warn("Requested torrent hash was: {}",
+	    logger.trace("Requested torrent hash was: {}",
 		    announceRequest.getHexInfoHash());
 	    // this.serveError(response, body, Status.BAD_REQUEST,
 	    // ErrorMessage.FailureReason.UNKNOWN_TORRENT);
@@ -218,7 +213,7 @@ public class TrackerService implements Container {
 
 	// Craft and output the answer
 	HTTPAnnounceResponseMessage announceResponse = null;
-	try {
+	try (final WritableByteChannel channel = Channels.newChannel(body)) {
 	    announceResponse = HTTPAnnounceResponseMessage.craft(
 		    torrent.getAnnounceInterval(),
 		    TrackedTorrent.MIN_ANNOUNCE_INTERVAL_SECONDS,
@@ -226,7 +221,6 @@ public class TrackerService implements Container {
 		    torrent.seeders(),
 		    torrent.leechers(),
 		    torrent.getSomePeers(peer));
-	    final WritableByteChannel channel = Channels.newChannel(body);
 	    channel.write(announceResponse.getData());
 	} catch (final Exception e) {
 	    this.serveError(response, body, Status.INTERNAL_SERVER_ERROR,
@@ -318,11 +312,11 @@ public class TrackerService implements Container {
 	    final Status status, final HTTPTrackerErrorMessage error) throws IOException {
 	response.setCode(status.getCode());
 	response.setDescription(status.getDescription());
-	logger.warn("Could not process announce request ({}) !",
+	logger.trace("Could not process announce request ({}) !",
 		error.getReason());
-
-	final WritableByteChannel channel = Channels.newChannel(body);
-	channel.write(error.getData());
+	try (final WritableByteChannel channel = Channels.newChannel(body)){
+		channel.write(error.getData());
+	}
     }
 
     /**

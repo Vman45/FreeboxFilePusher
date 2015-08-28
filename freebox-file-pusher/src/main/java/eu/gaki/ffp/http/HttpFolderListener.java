@@ -13,6 +13,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -45,7 +47,7 @@ public class HttpFolderListener implements FolderListener {
 
 	/** The files compresor. */
 	private final FilesCompresor filesCompresor;
-
+	
 	/**
 	 * Instantiates a new http folder listener.
 	 *
@@ -78,10 +80,9 @@ public class HttpFolderListener implements FolderListener {
 		if (Files.exists(path) && !Files.isDirectory(path) && !isAlreadyPushed(path)) {
 			httpFileServer.addFileToServe(path);
 		} else if (Files.isDirectory(path) && !isAlreadyPushed(filesCompresor.computeTarBZip2Name(path))) {
-			final String property = configuration.getProperty("ffp.compress.folder", "true");
+			final String property = configuration.getProperty("ffp.tar.folder", "true");
 			if (Boolean.valueOf(property)) {
 				filesCompresor.compress(path);
-				FileUtils.deleteDirectory(path.toFile());
 			}
 		}
 	}

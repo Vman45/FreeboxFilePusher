@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
+import java.util.Locale;
 import java.util.Properties;
 
 import org.apache.commons.io.FilenameUtils;
@@ -31,6 +32,9 @@ public class RssFileGenerator {
 
 	/** The rss file items. */
 	private Collection<RssFileItem> rssFileItems;
+
+	/** The rss date formateur. */
+	private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);;
 
 	/**
 	 * Instantiates a new torrent rss.
@@ -78,7 +82,7 @@ public class RssFileGenerator {
 					item = itemRss.replace("${file.name}", rssFileItem.getName());
 					item = item.replace("${file.url}", rssFileItem.getUrl());
 					item = item.replace("${file.size}", Long.toString(rssFileItem.getSize()));
-					item = item.replace("${file.date}", new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z").format(rssFileItem.getDate()));
+					item = item.replace("${file.date}", simpleDateFormat.format(rssFileItem.getDate()));
 					items.append(item);
 				}
 

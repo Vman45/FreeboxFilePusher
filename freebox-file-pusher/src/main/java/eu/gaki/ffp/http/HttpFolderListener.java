@@ -13,10 +13,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +66,7 @@ public class HttpFolderListener implements FolderListener {
 	 */
 	@Override
 	public boolean isAlreadyPushed(final Path path) {
-		return httpFileServer.isFileServed(path);
+		return httpFileServer.isFileServed(path) || filesCompresor.isInProgress(path);
 	}
 
 	/**
@@ -78,12 +75,11 @@ public class HttpFolderListener implements FolderListener {
 	@Override
 	public void scanPath(final Path folderScanned, final Path path) throws IOException {
 		if (Files.exists(path) && !Files.isDirectory(path) && !isAlreadyPushed(path)) {
+			LOGGER.debug("Found a file to serve: {}", path);
 			httpFileServer.addFileToServe(path);
-		} else if (Files.isDirectory(path) && !isAlreadyPushed(filesCompresor.computeTarBZip2Name(path))) {
-			final String property = configuration.getProperty("ffp.tar.folder", "true");
-			if (Boolean.valueOf(property)) {
-				filesCompresor.compress(path);
-			}
+		} else if (Files.isDirectory(path) && !isAlreadyPushed(filesCompresor.computeCompressFileName(path))) {
+			LOGGER.debug("Found a directory to compress{}", path);
+			filesCompresor.compress(path);
 		}
 	}
 

@@ -9,6 +9,7 @@
 	<artifactId>freebox-file-pusher</artifactId>
 
 	<version>1.0.0</version>
+    <packaging>jar</packaging>
 
 	<name>FreeboxFilePusher</name>
 

@@ -1,0 +1,41 @@
+2016-02-13 22:54:19 TRACE FreeboxFilePusher:52 - Initialize...
+2016-02-13 22:54:19 ERROR RssFileGenerator:95 - Cannot write rss file: www-data/rss.xml
+java.nio.file.NoSuchFileException: www-data/rss.xml
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.newFileChannel(UnixFileSystemProvider.java:177)
+	at java.nio.channels.FileChannel.open(FileChannel.java:287)
+	at java.nio.channels.FileChannel.open(FileChannel.java:335)
+	at eu.gaki.ffp.RssFileGenerator.generateRss(RssFileGenerator.java:76)
+	at eu.gaki.ffp.FreeboxFilePusher.init(FreeboxFilePusher.java:71)
+	at eu.gaki.ffp.FreeboxFilePusher.main(FreeboxFilePusher.java:189)
+2016-02-13 22:54:19 TRACE FreeboxFilePusher:141 - Start watching...
+2016-02-13 22:54:29 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
+2016-02-13 22:54:32 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
+2016-02-13 22:54:34 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
+2016-02-13 22:54:36 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
+2016-02-13 22:54:38 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
+2016-02-13 22:54:40 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
+2016-02-13 22:54:42 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
+2016-02-13 22:54:44 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
+2016-02-13 22:54:46 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
+2016-02-13 22:54:48 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
+2016-02-13 22:54:50 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
+2016-02-13 22:54:52 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
+2016-02-13 22:54:54 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
+2016-02-13 22:54:56 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
+2016-02-13 22:54:58 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
+2016-02-13 22:55:00 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
+2016-02-13 22:55:02 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
+2016-02-13 22:55:04 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
+2016-02-13 22:55:06 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
+2016-02-13 22:55:08 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
+2016-02-13 22:55:10 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
+2016-02-13 22:55:12 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
+2016-02-13 22:55:14 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
+2016-02-13 22:55:16 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
+2016-02-13 22:55:18 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
+2016-02-13 22:55:20 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
+2016-02-13 22:55:22 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
+2016-02-13 22:55:24 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.

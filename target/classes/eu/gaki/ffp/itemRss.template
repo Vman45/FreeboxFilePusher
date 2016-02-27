@@ -1,0 +1,8 @@
+     <item>
+      <title>${file.name}</title>
+      <guid isPermaLink="true">${file.url}</guid>
+      <pubDate>${file.date}</pubDate>
+      <link>${file.url}</link>
+      <description><![CDATA[Push by Freebox File Pusher]]></description>
+      <enclosure url="${file.url}" length="${file.size}" type="application/octetstream"/>
+     </item>

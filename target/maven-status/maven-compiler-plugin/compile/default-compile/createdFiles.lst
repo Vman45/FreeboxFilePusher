@@ -62,6 +62,7 @@ com/turn/ttorrent/common/Torrent$CallableChunkHasher.class
 com/turn/ttorrent/common/Torrent.class
 com/turn/ttorrent/client/storage/FileStorage.class
 com/turn/ttorrent/client/Client$ClientState.class
+eu/gaki/ffp/service/ChecksumFileService.class
 com/turn/ttorrent/common/protocol/udp/UDPTrackerMessage$UDPTrackerRequestMessage.class
 eu/gaki/ffp/RssFileItem.class
 com/turn/ttorrent/client/announce/UDPTrackerClient.class
@@ -80,6 +81,7 @@ com/turn/ttorrent/common/protocol/TrackerMessage.class
 com/turn/ttorrent/common/protocol/http/HTTPAnnounceRequestMessage.class
 eu/gaki/ffp/FolderListener.class
 com/turn/ttorrent/tracker/Tracker.class
+eu/gaki/ffp/domain/FilesList.class
 eu/gaki/ffp/RssFileGenerator.class
 com/turn/ttorrent/client/Client.class
 com/turn/ttorrent/common/protocol/udp/UDPTrackerMessage$1.class
@@ -93,6 +95,7 @@ com/turn/ttorrent/client/strategy/RequestStrategy.class
 com/turn/ttorrent/common/protocol/PeerMessage$1.class
 com/turn/ttorrent/common/protocol/TrackerMessage$MessageValidationException.class
 com/turn/ttorrent/common/protocol/udp/UDPTrackerMessage$UDPTrackerResponseMessage.class
+eu/gaki/ffp/domain/File.class
 com/turn/ttorrent/client/Piece$CallableHasher.class
 com/turn/ttorrent/client/peer/MessageListener.class
 com/turn/ttorrent/tracker/Tracker$TrackerThread.class
@@ -101,6 +104,7 @@ com/turn/ttorrent/common/protocol/TrackerMessage$ConnectionResponseMessage.class
 com/turn/ttorrent/common/protocol/TrackerMessage$ErrorMessage$FailureReason.class
 com/turn/ttorrent/client/ConnectionHandler$ConnectorTask.class
 com/turn/ttorrent/tracker/Tracker$PeerCollectorThread.class
+eu/gaki/ffp/domain/FilePusher.class
 com/turn/ttorrent/common/protocol/PeerMessage$HaveMessage.class
 com/turn/ttorrent/client/announce/Announce.class
 com/turn/ttorrent/client/Client$ClientShutdown.class

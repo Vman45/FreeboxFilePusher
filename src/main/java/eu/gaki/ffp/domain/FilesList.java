@@ -10,12 +10,12 @@ public class FilesList {
     /**
      * List of files
      */
-    private List<File> files;
+    private List<FfpFile> files;
     
-    public void setFiles (List<File> files) {
+    public void setFiles (List<FfpFile> files) {
         this.files = files;
     }    
-    public List<File> getFiles() {
+    public List<FfpFile> getFiles() {
         return this.files;
     }
 }

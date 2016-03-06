@@ -11,7 +11,7 @@ import java.util.zip.Adler32;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.gaki.ffp.domain.File;
+import eu.gaki.ffp.domain.FfpFile;
 
 /**
  * CheckedInputStream
@@ -29,7 +29,18 @@ public class ChecksumFileService {
      * @param file The file.
      * @return true if the checksum have changed
      */
-    public boolean computeChecksum(File file) {
+    public boolean computeChecksum(FfpFile file) {
+        return this.computeChecksum(file, CHUNK_SIZE);
+    }
+    
+    /**
+     * Compute the checksun of the file.
+     * 
+     * @param file The file.
+     * @param chunkSize The size of each chunk
+     * @return true if the checksum have changed
+     */
+    public boolean computeChecksum(FfpFile file, int chunkSize) {
         boolean result = false;
         
         if (file != null && file.getPath() != null) {

@@ -1,13 +1,12 @@
 -------------------------------------------------------------------------------
 Test set: eu.gaki.ffp.service.ChecksumFileServiceTest
 -------------------------------------------------------------------------------
-Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.173 sec <<< FAILURE!
-test(eu.gaki.ffp.service.ChecksumFileServiceTest)  Time elapsed: 0.051 sec  <<< FAILURE!
-java.lang.AssertionError: 
+Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 31,876.188 sec <<< FAILURE!
+computeChecksum(eu.gaki.ffp.service.ChecksumFileServiceTest)  Time elapsed: 31,876.028 sec  <<< FAILURE!
+java.lang.AssertionError: No adler32 computed
 	at org.junit.Assert.fail(Assert.java:91)
 	at org.junit.Assert.assertTrue(Assert.java:43)
-	at org.junit.Assert.assertTrue(Assert.java:54)
-	at eu.gaki.ffp.service.ChecksumFileServiceTest.test(ChecksumFileServiceTest.java:11)
+	at eu.gaki.ffp.service.ChecksumFileServiceTest.computeChecksum(ChecksumFileServiceTest.java:53)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
 	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)

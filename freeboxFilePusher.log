@@ -39,3 +39,16 @@ java.nio.file.NoSuchFileException: www-data/rss.xml
 2016-02-13 22:55:20 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
 2016-02-13 22:55:22 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
 2016-02-13 22:55:24 WARN  FoldersWatcherRunnable:93 - The folder to-send doesn't exist.
+2016-03-05 13:12:07 TRACE FreeboxFilePusher:52 - Initialize...
+2016-03-05 13:12:07 ERROR RssFileGenerator:95 - Cannot write rss file: www-data/rss.xml
+java.nio.file.NoSuchFileException: www-data/rss.xml
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.newFileChannel(UnixFileSystemProvider.java:177)
+	at java.nio.channels.FileChannel.open(FileChannel.java:287)
+	at java.nio.channels.FileChannel.open(FileChannel.java:335)
+	at eu.gaki.ffp.RssFileGenerator.generateRss(RssFileGenerator.java:76)
+	at eu.gaki.ffp.FreeboxFilePusher.init(FreeboxFilePusher.java:71)
+	at eu.gaki.ffp.FreeboxFilePusher.main(FreeboxFilePusher.java:189)
+2016-03-05 13:12:07 TRACE FreeboxFilePusher:141 - Start watching...

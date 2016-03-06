@@ -2,6 +2,7 @@ com/turn/ttorrent/client/peer/PeerExchange$RateLimitThread.class
 com/turn/ttorrent/client/peer/Rate$RateComparator.class
 com/turn/ttorrent/common/protocol/PeerMessage$PieceMessage.class
 com/turn/ttorrent/tracker/Tracker$1.class
+eu/gaki/ffp/domain/FfpFile.class
 eu/gaki/ffp/http/HttpFileServerService.class
 eu/gaki/ffp/FreeboxFilePusher.class
 com/turn/ttorrent/common/protocol/http/HTTPTrackerMessage.class
@@ -95,7 +96,6 @@ com/turn/ttorrent/client/strategy/RequestStrategy.class
 com/turn/ttorrent/common/protocol/PeerMessage$1.class
 com/turn/ttorrent/common/protocol/TrackerMessage$MessageValidationException.class
 com/turn/ttorrent/common/protocol/udp/UDPTrackerMessage$UDPTrackerResponseMessage.class
-eu/gaki/ffp/domain/File.class
 com/turn/ttorrent/client/Piece$CallableHasher.class
 com/turn/ttorrent/client/peer/MessageListener.class
 com/turn/ttorrent/tracker/Tracker$TrackerThread.class

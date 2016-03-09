@@ -6,6 +6,8 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.zip.Adler32;
 
 import org.slf4j.Logger;
@@ -17,11 +19,11 @@ import eu.gaki.ffp.domain.FfpFile;
  * CheckedInputStream
  */
 public class ChecksumFileService {
-    
-    private static final int CHUNK_SIZE = 100000;
-    
+
+    private static final int    CHUNK_SIZE = 104857600;                                         // 1024* 1024 * 100 = 100MB
+
     /** The Constant LOGGER. */
-	private static final Logger LOGGER = LoggerFactory.getLogger(ChecksumFileService.class);
+    private static final Logger LOGGER     = LoggerFactory.getLogger(ChecksumFileService.class);
 
     /**
      * Compute the checksun of the file.
@@ -32,7 +34,7 @@ public class ChecksumFileService {
     public boolean computeChecksum(FfpFile file) {
         return this.computeChecksum(file, CHUNK_SIZE);
     }
-    
+
     /**
      * Compute the checksun of the file.
      * 
@@ -42,45 +44,43 @@ public class ChecksumFileService {
      */
     public boolean computeChecksum(FfpFile file, int chunkSize) {
         boolean result = false;
-        
+        Map<Long, Long> newAdler32 = new HashMap<>();
         if (file != null && file.getPath() != null) {
             Path path = file.getPath();
-            if(Files.isRegularFile(path)) {
-                try {
-                //RandomAccessFile aFile = new RandomAccessFile("test.txt", "r");
-                //FileChannel inChannel = aFile.getChannel();
-                FileChannel inChannel = FileChannel.open(path, StandardOpenOption.READ);                               
-                MappedByteBuffer buffer = inChannel.map(FileChannel.MapMode.READ_ONLY, 0, inChannel.size());
-                buffer.load();  
-                while (buffer.remaining() > 0)
-                {
-                    byte[] readed;
-                    if (buffer.remaining() >= CHUNK_SIZE) {
-                        readed = new byte[CHUNK_SIZE];
-                    } else {
-                        readed = new byte[buffer.remaining()];
-                    }
-                    buffer.get(readed);
+            if (Files.isRegularFile(path)) {
+                try (FileChannel inChannel = FileChannel.open(path, StandardOpenOption.READ)) {
+                    MappedByteBuffer buffer = inChannel.map(FileChannel.MapMode.READ_ONLY, 0, inChannel.size());
+                    buffer.load();
                     Adler32 adler32 = new Adler32();
-                    adler32.update(readed);
-                    Long position = Long.valueOf(buffer.position());
-                    Long newChecksum = adler32.getValue();
-                    Long oldChecksum = file.getAdler32().get(position);
-                    if (oldChecksum == null || oldChecksum != newChecksum) {
-                        result = true;
-                        LOGGER.info("Le checksum de {"+path+"} a changé.");
-                    }    
-                    file.addAdler32(position, newChecksum);
-                }
-                buffer.clear(); // do something with the data and clear/compact it.
-                inChannel.close();
-                //aFile.close();
+                    while (buffer.remaining() > 0) {
+                        byte[] readed;
+                        if (buffer.remaining() >= chunkSize) {
+                            readed = new byte[chunkSize];
+                        } else {
+                            readed = new byte[buffer.remaining()];
+                        }
+                        buffer.get(readed);
+                        adler32.update(readed);
+                        Long newChecksum = adler32.getValue();
+                        adler32.reset();
+                        Long position = Long.valueOf(buffer.position());
+                        Long oldChecksum = file.getAdler32().get(position);
+                        if (oldChecksum == null || !oldChecksum.equals(newChecksum)) {
+                            result = true;
+                        }
+                        newAdler32.put(position, newChecksum);
+                    }
+                    buffer.clear();
+                    file.setAdler32(newAdler32);
+                    if (result) {
+                        LOGGER.info("Checksum changed {" + path + "}.");
+                    }
                 } catch (IOException e) {
-                    LOGGER.error("Impossible de calculer le checksum de {"+path+"}", e);
+                    LOGGER.error("Checksum compute faild for {" + path + "}", e);
                 }
-            }    
+            }
         }
         return result;
     }
-    
+
 }

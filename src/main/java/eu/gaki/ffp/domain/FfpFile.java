@@ -46,11 +46,11 @@ public class FfpFile {
         return this.path;
     }
     
-    public void addAdler32 (Long byteNumber, Long checksome) {
-        this.adler32.put(byteNumber, checksome);
-    }    
     public Map<Long ,Long> getAdler32() {
         return this.adler32;
+    }
+    public void setAdler32( Map<Long ,Long> adler32) {
+        this.adler32 = adler32;
     }
     
     public void setSize (Long size) {

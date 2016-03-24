@@ -9,15 +9,15 @@ import java.util.List;
 public class FilePusher {
     
     /**
-     * List of filesList managed by the system.
+     * List of filesList to watch by the system.
      */
-    private List<FilesList> fileManaged = new ArrayList<>();
-    
-    public void setFileManaged (List<FilesList> fileManaged) {
-        this.fileManaged = fileManaged;
+    private List<FfpList> ffpListWatched = new ArrayList<>();
+   
+    public void setFfpListWatched (List<FfpList> ffpListWatched) {
+        this.ffpListWatched = ffpListWatched;
     }    
-    public List<FilesList> getFileManaged() {
-        return this.fileManaged;
+    public List<FfpList> getFfpListWatched() {
+        return this.ffpListWatched;
     }    
     
 }

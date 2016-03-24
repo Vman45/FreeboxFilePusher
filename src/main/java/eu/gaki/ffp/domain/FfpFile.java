@@ -1,7 +1,7 @@
 package eu.gaki.ffp.domain;
 
 import java.nio.file.Path;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,7 +18,7 @@ public class FfpFile {
     /**
      * The date when we compute the checksome adler32 for this file.
      */
-    private Date adler32Date = null;
+    private LocalDateTime adler32Date = null;
    
     /**
      * Map for store checksome : Bytes number => Checksome value.<br>
@@ -32,10 +32,10 @@ public class FfpFile {
      */
     private Long size;
     
-    public void setAdler32Date (Date adler32Date) {
+    public void setAdler32Date (LocalDateTime adler32Date) {
         this.adler32Date = adler32Date;
     }    
-    public Date getAdler32Date() {
+    public LocalDateTime getAdler32Date() {
         return this.adler32Date;
     }    
         
@@ -45,7 +45,7 @@ public class FfpFile {
     public Path getPath() {
         return this.path;
     }
-    
+       
     public Map<Long ,Long> getAdler32() {
         return this.adler32;
     }

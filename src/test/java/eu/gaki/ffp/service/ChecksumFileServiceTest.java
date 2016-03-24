@@ -76,6 +76,8 @@ public class ChecksumFileServiceTest {
             Assert.assertTrue(result4);
 
             Assert.assertTrue("No adler32 computed", file.getAdler32().size() > 0);
+            
+            // toto
         } catch (IOException e) {
             System.err.format("IOException: %s%n", e);
             Assert.assertTrue(false);

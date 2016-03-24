@@ -6,6 +6,7 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.Adler32;
@@ -71,6 +72,7 @@ public class ChecksumFileService {
                         newAdler32.put(position, newChecksum);
                     }
                     buffer.clear();
+                    file.setAdler32Date(LocalDateTime.now());
                     file.setAdler32(newAdler32);
                     if (result) {
                         LOGGER.info("Checksum changed {" + path + "}.");

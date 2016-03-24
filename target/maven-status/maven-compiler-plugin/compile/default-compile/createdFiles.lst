@@ -17,6 +17,7 @@ com/turn/ttorrent/common/protocol/http/HTTPTrackerErrorMessage.class
 com/turn/ttorrent/common/protocol/udp/UDPTrackerErrorMessage.class
 com/turn/ttorrent/common/protocol/udp/UDPTrackerMessage.class
 com/turn/ttorrent/client/peer/PeerExchange$1.class
+eu/gaki/ffp/service/ConfigService.class
 com/turn/ttorrent/client/peer/SharingPeer$ULRateComparator.class
 com/turn/ttorrent/client/peer/SharingPeer.class
 com/turn/ttorrent/tracker/Tracker$TorrentRemoveTimer.class
@@ -60,6 +61,7 @@ com/turn/ttorrent/client/IncomingConnectionListener.class
 com/turn/ttorrent/client/peer/PeerExchange$OutgoingThread.class
 eu/gaki/ffp/bittorrent/BittorrentFolderListener.class
 com/turn/ttorrent/common/Torrent$CallableChunkHasher.class
+eu/gaki/ffp/service/DaoService.class
 com/turn/ttorrent/common/Torrent.class
 com/turn/ttorrent/client/storage/FileStorage.class
 com/turn/ttorrent/client/Client$ClientState.class
@@ -80,9 +82,9 @@ com/turn/ttorrent/client/announce/UDPTrackerClient$1.class
 com/turn/ttorrent/client/storage/FileCollectionStorage$FileOffset.class
 com/turn/ttorrent/common/protocol/TrackerMessage.class
 com/turn/ttorrent/common/protocol/http/HTTPAnnounceRequestMessage.class
+eu/gaki/ffp/domain/FfpList.class
 eu/gaki/ffp/FolderListener.class
 com/turn/ttorrent/tracker/Tracker.class
-eu/gaki/ffp/domain/FilesList.class
 eu/gaki/ffp/RssFileGenerator.class
 com/turn/ttorrent/client/Client.class
 com/turn/ttorrent/common/protocol/udp/UDPTrackerMessage$1.class
@@ -108,6 +110,7 @@ eu/gaki/ffp/domain/FilePusher.class
 com/turn/ttorrent/common/protocol/PeerMessage$HaveMessage.class
 com/turn/ttorrent/client/announce/Announce.class
 com/turn/ttorrent/client/Client$ClientShutdown.class
+eu/gaki/ffp/domain/StatusEnum.class
 com/turn/ttorrent/client/Piece.class
 eu/gaki/ffp/http/HttpFolderListener.class
 com/turn/ttorrent/tracker/TrackedTorrent.class

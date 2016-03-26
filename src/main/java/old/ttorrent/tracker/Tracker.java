@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.turn.ttorrent.tracker;
+package old.ttorrent.tracker;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -33,7 +33,7 @@ import org.simpleframework.transport.connect.SocketConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.turn.ttorrent.common.Torrent;
+import old.ttorrent.common.Torrent;
 
 /**
  * BitTorrent tracker.

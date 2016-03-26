@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.turn.ttorrent.common.protocol.udp;
+package old.ttorrent.common.protocol.udp;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 
-import com.turn.ttorrent.common.Torrent;
-import com.turn.ttorrent.common.protocol.TrackerMessage;
+import old.ttorrent.common.Torrent;
+import old.ttorrent.common.protocol.TrackerMessage;
 
 
 /**

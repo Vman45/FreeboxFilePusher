@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.turn.ttorrent.client.peer;
+package old.ttorrent.client.peer;
 
 import java.io.Serializable;
 import java.util.Comparator;

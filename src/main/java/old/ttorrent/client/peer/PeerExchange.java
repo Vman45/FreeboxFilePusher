@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.turn.ttorrent.client.peer;
+package old.ttorrent.client.peer;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -35,9 +35,9 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.turn.ttorrent.client.SharedTorrent;
-import com.turn.ttorrent.common.protocol.PeerMessage;
-import com.turn.ttorrent.common.protocol.PeerMessage.Type;
+import old.ttorrent.client.SharedTorrent;
+import old.ttorrent.common.protocol.PeerMessage;
+import old.ttorrent.common.protocol.PeerMessage.Type;
 
 
 /**

@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.turn.ttorrent.common.protocol;
+package old.ttorrent.common.protocol;
 
 import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.util.BitSet;
 
-import com.turn.ttorrent.client.SharedTorrent;
+import old.ttorrent.client.SharedTorrent;
 
 /**
  * BitTorrent peer protocol messages representations.

@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.turn.ttorrent.client;
+package old.ttorrent.client;
 
 import java.nio.channels.SocketChannel;
 import java.util.EventListener;
 
-import com.turn.ttorrent.client.peer.SharingPeer;
+import old.ttorrent.client.peer.SharingPeer;
 
 /**
  * EventListener interface for objects that want to handle incoming peer

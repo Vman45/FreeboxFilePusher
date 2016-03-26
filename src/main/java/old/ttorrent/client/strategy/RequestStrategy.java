@@ -1,9 +1,9 @@
-package com.turn.ttorrent.client.strategy;
+package old.ttorrent.client.strategy;
 
 import java.util.BitSet;
 import java.util.SortedSet;
 
-import com.turn.ttorrent.client.Piece;
+import old.ttorrent.client.Piece;
 
 /**
  * Interface for a piece request strategy provider.

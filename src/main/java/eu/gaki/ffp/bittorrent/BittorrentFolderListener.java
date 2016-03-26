@@ -73,7 +73,7 @@ public class BittorrentFolderListener implements FolderListener {
 		boolean tracked = false;
 		if (tracker != null) {
 			final Path torrentFile = computeTorrentFileName(path);
-			tracked = tracker.isTracked(torrentFile);
+//			tracked = tracker.isTracked(torrentFile);
 		}
 		return tracked;
 	}
@@ -91,15 +91,15 @@ public class BittorrentFolderListener implements FolderListener {
 		}
 		if (torrentFile != null && Files.exists(torrentFile)) {
 			startTracker();
-			if (tracker != null && !tracker.isTracked(torrentFile)) {
-				// Add file to tracker
-				final TrackedTorrent torrent = TrackedTorrent.load(torrentFile
-						.toFile());
-				torrent.setSeederClient(new SeederClient(configuration,
-						torrent, torrentFile, path));
-				tracker.announce(torrent);
-				LOGGER.info("Announce file: {}", torrentFile);
-			}
+//			if (tracker != null && !tracker.isTracked(torrentFile)) {
+//				// Add file to tracker
+//				final TrackedTorrent torrent = TrackedTorrent.load(torrentFile
+//						.toFile());
+//				torrent.setSeederClient(new SeederClient(configuration,
+//						torrent, torrentFile, path));
+//				tracker.announce(torrent);
+//				LOGGER.info("Announce file: {}", torrentFile);
+//			}
 		} else {
 			LOGGER.error("cannot create torrent file.");
 		}
@@ -116,11 +116,11 @@ public class BittorrentFolderListener implements FolderListener {
 			// Remove tracked file which no more exist
 			final ArrayList<TrackedTorrent> trackedTorrents = new ArrayList<TrackedTorrent>(tracker.getTrackedTorrents());
 			trackedTorrents.forEach(torrent -> {
-				final SeederClient seederClient = torrent.getSeederClient();
-				if (seederClient == null || seederClient.getTorrentFile() == null || Files.notExists(seederClient.getTorrentFile())) {
-					tracker.remove(torrent);
-					LOGGER.info("Remove announce file: {}", torrent.getName());
-				}
+//				final SeederClient seederClient = torrent.getSeederClient();
+//				if (seederClient == null || seederClient.getTorrentFile() == null || Files.notExists(seederClient.getTorrentFile())) {
+//					tracker.remove(torrent);
+//					LOGGER.info("Remove announce file: {}", torrent.getName());
+//				}
 			});
 
 			// If no more tracker torrent stop the tracker
@@ -148,7 +148,8 @@ public class BittorrentFolderListener implements FolderListener {
 						// Rss link name
 						rssFileItem.setName(torrent.getName());
 						// Rss file URL
-						final String name = torrent.getSeederClient().getTorrentFile().getFileName().toString();
+						final String name = "";
+//						final String name = torrent.getSeederClient().getTorrentFile().getFileName().toString();
 						String nameUrl;
 						try {
 							nameUrl = URLEncoder.encode(name, "UTF-8").replace("+", "%20");
@@ -162,8 +163,9 @@ public class BittorrentFolderListener implements FolderListener {
 								"${file.name}",
 								nameUrl));
 						// Rss file date
-						final Path torrentFile = torrent.getSeederClient()
-								.getTorrentFile();
+						final Path torrentFile = null;
+//						final Path torrentFile = torrent.getSeederClient()
+//								.getTorrentFile();
 						FileTime lastModifiedTime;
 						try {
 							lastModifiedTime = Files

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.turn.ttorrent.tracker;
+package old.ttorrent.tracker;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -33,15 +33,15 @@ import org.simpleframework.http.core.Container;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.turn.ttorrent.bcodec.BEValue;
-import com.turn.ttorrent.bcodec.BEncoder;
-import com.turn.ttorrent.common.Torrent;
-import com.turn.ttorrent.common.protocol.TrackerMessage.AnnounceRequestMessage;
-import com.turn.ttorrent.common.protocol.TrackerMessage.ErrorMessage;
-import com.turn.ttorrent.common.protocol.TrackerMessage.MessageValidationException;
-import com.turn.ttorrent.common.protocol.http.HTTPAnnounceRequestMessage;
-import com.turn.ttorrent.common.protocol.http.HTTPAnnounceResponseMessage;
-import com.turn.ttorrent.common.protocol.http.HTTPTrackerErrorMessage;
+import old.ttorrent.bcodec.BEValue;
+import old.ttorrent.bcodec.BEncoder;
+import old.ttorrent.common.Torrent;
+import old.ttorrent.common.protocol.TrackerMessage.AnnounceRequestMessage;
+import old.ttorrent.common.protocol.TrackerMessage.ErrorMessage;
+import old.ttorrent.common.protocol.TrackerMessage.MessageValidationException;
+import old.ttorrent.common.protocol.http.HTTPAnnounceRequestMessage;
+import old.ttorrent.common.protocol.http.HTTPAnnounceResponseMessage;
+import old.ttorrent.common.protocol.http.HTTPTrackerErrorMessage;
 
 
 /**

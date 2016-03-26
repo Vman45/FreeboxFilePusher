@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.turn.ttorrent.client.announce;
+package old.ttorrent.client.announce;
 
 import java.net.URI;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.turn.ttorrent.client.SharedTorrent;
-import com.turn.ttorrent.common.Peer;
-import com.turn.ttorrent.common.protocol.TrackerMessage;
-import com.turn.ttorrent.common.protocol.TrackerMessage.AnnounceRequestMessage;
-import com.turn.ttorrent.common.protocol.TrackerMessage.AnnounceResponseMessage;
-import com.turn.ttorrent.common.protocol.TrackerMessage.ErrorMessage;
+import old.ttorrent.client.SharedTorrent;
+import old.ttorrent.common.Peer;
+import old.ttorrent.common.protocol.TrackerMessage;
+import old.ttorrent.common.protocol.TrackerMessage.AnnounceRequestMessage;
+import old.ttorrent.common.protocol.TrackerMessage.AnnounceResponseMessage;
+import old.ttorrent.common.protocol.TrackerMessage.ErrorMessage;
 
 public abstract class TrackerClient {
 

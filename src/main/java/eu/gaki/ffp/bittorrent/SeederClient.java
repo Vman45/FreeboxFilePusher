@@ -153,7 +153,7 @@ public class SeederClient {
 					// File is sent completely
 					stopAndDelete();
 					noLeecherDate = null;
-					torrent.setSeederClient(null);
+					//torrent.setSeederClient(null);
 				} else {
 					// One one seeder (us) probably the bittorent client put the
 					// torrent in stalled state (he don't yet see

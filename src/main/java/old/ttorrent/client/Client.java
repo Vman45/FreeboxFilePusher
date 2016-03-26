@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.turn.ttorrent.client;
+package old.ttorrent.client;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -37,15 +37,15 @@ import java.util.concurrent.ConcurrentMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.turn.ttorrent.client.announce.Announce;
-import com.turn.ttorrent.client.announce.AnnounceException;
-import com.turn.ttorrent.client.announce.AnnounceResponseListener;
-import com.turn.ttorrent.client.peer.PeerActivityListener;
-import com.turn.ttorrent.client.peer.SharingPeer;
-import com.turn.ttorrent.common.Peer;
-import com.turn.ttorrent.common.Torrent;
-import com.turn.ttorrent.common.protocol.PeerMessage;
-import com.turn.ttorrent.common.protocol.TrackerMessage;
+import old.ttorrent.client.announce.Announce;
+import old.ttorrent.client.announce.AnnounceException;
+import old.ttorrent.client.announce.AnnounceResponseListener;
+import old.ttorrent.client.peer.PeerActivityListener;
+import old.ttorrent.client.peer.SharingPeer;
+import old.ttorrent.common.Peer;
+import old.ttorrent.common.Torrent;
+import old.ttorrent.common.protocol.PeerMessage;
+import old.ttorrent.common.protocol.TrackerMessage;
 
 /**
  * A pure-java BitTorrent client.
@@ -992,5 +992,6 @@ public class Client extends Observable implements Runnable,
 				this.timer.cancel();
 			}
 		}
-	};
+	}
+
 }

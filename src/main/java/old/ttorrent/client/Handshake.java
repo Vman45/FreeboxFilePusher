@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.turn.ttorrent.client;
+package old.ttorrent.client;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
 
-import com.turn.ttorrent.common.Torrent;
+import old.ttorrent.common.Torrent;
 
 
 /**

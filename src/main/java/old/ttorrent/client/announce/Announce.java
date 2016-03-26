@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.turn.ttorrent.client.announce;
+package old.ttorrent.client.announce;
 
 import java.net.URI;
 import java.net.UnknownHostException;
@@ -27,9 +27,9 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.turn.ttorrent.client.SharedTorrent;
-import com.turn.ttorrent.common.Peer;
-import com.turn.ttorrent.common.protocol.TrackerMessage.AnnounceRequestMessage;
+import old.ttorrent.client.SharedTorrent;
+import old.ttorrent.common.Peer;
+import old.ttorrent.common.protocol.TrackerMessage.AnnounceRequestMessage;
 
 /**
  * BitTorrent announce sub-system.

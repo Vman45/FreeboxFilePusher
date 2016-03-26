@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.turn.ttorrent.common.protocol.http;
+package old.ttorrent.common.protocol.http;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -24,13 +24,13 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.turn.ttorrent.bcodec.BDecoder;
-import com.turn.ttorrent.bcodec.BEValue;
-import com.turn.ttorrent.bcodec.BEncoder;
-import com.turn.ttorrent.bcodec.InvalidBEncodingException;
-import com.turn.ttorrent.common.Peer;
-import com.turn.ttorrent.common.Torrent;
-import com.turn.ttorrent.common.protocol.TrackerMessage.AnnounceRequestMessage;
+import old.ttorrent.bcodec.BDecoder;
+import old.ttorrent.bcodec.BEValue;
+import old.ttorrent.bcodec.BEncoder;
+import old.ttorrent.bcodec.InvalidBEncodingException;
+import old.ttorrent.common.Peer;
+import old.ttorrent.common.Torrent;
+import old.ttorrent.common.protocol.TrackerMessage.AnnounceRequestMessage;
 
 
 /**

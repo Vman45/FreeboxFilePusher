@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.turn.ttorrent.common.protocol.udp;
+package old.ttorrent.common.protocol.udp;
 
 import java.nio.ByteBuffer;
 
-import com.turn.ttorrent.common.protocol.TrackerMessage;
+import old.ttorrent.common.protocol.TrackerMessage;
 
 
 /**

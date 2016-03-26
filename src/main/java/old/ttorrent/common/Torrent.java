@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.turn.ttorrent.common;
+package old.ttorrent.common;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -49,9 +49,9 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.turn.ttorrent.bcodec.BDecoder;
-import com.turn.ttorrent.bcodec.BEValue;
-import com.turn.ttorrent.bcodec.BEncoder;
+import old.ttorrent.bcodec.BDecoder;
+import old.ttorrent.bcodec.BEValue;
+import old.ttorrent.bcodec.BEncoder;
 
 /**
  * A torrent file tracked by the controller's BitTorrent tracker.

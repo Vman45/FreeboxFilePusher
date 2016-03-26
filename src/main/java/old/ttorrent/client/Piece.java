@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.turn.ttorrent.client;
+package old.ttorrent.client;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -23,9 +23,9 @@ import java.util.concurrent.Callable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.turn.ttorrent.client.peer.SharingPeer;
-import com.turn.ttorrent.client.storage.TorrentByteStorage;
-import com.turn.ttorrent.common.Torrent;
+import old.ttorrent.client.peer.SharingPeer;
+import old.ttorrent.client.storage.TorrentByteStorage;
+import old.ttorrent.common.Torrent;
 
 
 /**

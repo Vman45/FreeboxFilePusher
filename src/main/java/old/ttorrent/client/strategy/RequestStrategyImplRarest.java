@@ -1,11 +1,11 @@
-package com.turn.ttorrent.client.strategy;
+package old.ttorrent.client.strategy;
 
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Random;
 import java.util.SortedSet;
 
-import com.turn.ttorrent.client.Piece;
+import old.ttorrent.client.Piece;
 
 /**
  * The default request strategy implementation- rarest first.

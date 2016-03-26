@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.turn.ttorrent.client.announce;
+package old.ttorrent.client.announce;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -34,17 +34,17 @@ import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.turn.ttorrent.client.SharedTorrent;
-import com.turn.ttorrent.common.Peer;
-import com.turn.ttorrent.common.protocol.TrackerMessage;
-import com.turn.ttorrent.common.protocol.TrackerMessage.AnnounceRequestMessage;
-import com.turn.ttorrent.common.protocol.TrackerMessage.ConnectionResponseMessage;
-import com.turn.ttorrent.common.protocol.TrackerMessage.ErrorMessage;
-import com.turn.ttorrent.common.protocol.TrackerMessage.MessageValidationException;
-import com.turn.ttorrent.common.protocol.udp.UDPAnnounceRequestMessage;
-import com.turn.ttorrent.common.protocol.udp.UDPConnectRequestMessage;
-import com.turn.ttorrent.common.protocol.udp.UDPConnectResponseMessage;
-import com.turn.ttorrent.common.protocol.udp.UDPTrackerMessage;
+import old.ttorrent.client.SharedTorrent;
+import old.ttorrent.common.Peer;
+import old.ttorrent.common.protocol.TrackerMessage;
+import old.ttorrent.common.protocol.TrackerMessage.AnnounceRequestMessage;
+import old.ttorrent.common.protocol.TrackerMessage.ConnectionResponseMessage;
+import old.ttorrent.common.protocol.TrackerMessage.ErrorMessage;
+import old.ttorrent.common.protocol.TrackerMessage.MessageValidationException;
+import old.ttorrent.common.protocol.udp.UDPAnnounceRequestMessage;
+import old.ttorrent.common.protocol.udp.UDPConnectRequestMessage;
+import old.ttorrent.common.protocol.udp.UDPConnectResponseMessage;
+import old.ttorrent.common.protocol.udp.UDPTrackerMessage;
 
 /**
  * Announcer for UDP trackers.

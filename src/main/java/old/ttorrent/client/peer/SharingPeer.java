@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.turn.ttorrent.client.peer;
+package old.ttorrent.client.peer;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -30,10 +30,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.turn.ttorrent.client.Piece;
-import com.turn.ttorrent.client.SharedTorrent;
-import com.turn.ttorrent.common.Peer;
-import com.turn.ttorrent.common.protocol.PeerMessage;
+import old.ttorrent.client.Piece;
+import old.ttorrent.client.SharedTorrent;
+import old.ttorrent.common.Peer;
+import old.ttorrent.common.protocol.PeerMessage;
 
 
 /**

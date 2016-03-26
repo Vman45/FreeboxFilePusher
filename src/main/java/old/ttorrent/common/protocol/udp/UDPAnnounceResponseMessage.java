@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.turn.ttorrent.common.protocol.udp;
+package old.ttorrent.common.protocol.udp;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -22,8 +22,8 @@ import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.turn.ttorrent.common.Peer;
-import com.turn.ttorrent.common.protocol.TrackerMessage;
+import old.ttorrent.common.Peer;
+import old.ttorrent.common.protocol.TrackerMessage;
 
 /**
  * The announce response message for the UDP tracker protocol.

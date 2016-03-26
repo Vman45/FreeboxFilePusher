@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.turn.ttorrent.client;
+package old.ttorrent.client;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -34,15 +34,16 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.turn.ttorrent.bcodec.InvalidBEncodingException;
-import com.turn.ttorrent.client.peer.PeerActivityListener;
-import com.turn.ttorrent.client.peer.SharingPeer;
-import com.turn.ttorrent.client.storage.FileCollectionStorage;
-import com.turn.ttorrent.client.storage.FileStorage;
-import com.turn.ttorrent.client.storage.TorrentByteStorage;
-import com.turn.ttorrent.client.strategy.RequestStrategy;
-import com.turn.ttorrent.client.strategy.RequestStrategyImplRarest;
-import com.turn.ttorrent.common.Torrent;
+import old.ttorrent.bcodec.InvalidBEncodingException;
+import old.ttorrent.client.peer.PeerActivityListener;
+import old.ttorrent.client.peer.SharingPeer;
+import old.ttorrent.client.storage.FileCollectionStorage;
+import old.ttorrent.client.storage.FileStorage;
+import old.ttorrent.client.storage.TorrentByteStorage;
+import old.ttorrent.common.Torrent;
+
+import old.ttorrent.client.strategy.RequestStrategy;
+import old.ttorrent.client.strategy.RequestStrategyImplRarest;
 
 
 /**

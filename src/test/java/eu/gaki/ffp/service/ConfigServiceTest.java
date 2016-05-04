@@ -11,7 +11,7 @@ public class ConfigServiceTest {
     @Test
     public void createConfigService() throws IOException {
         
-        ConfigService cs = new ConfigService(Paths.get("eu/gaki/fft/freeboxFilePusher.properties"));
+        ConfigService cs = new ConfigService(Paths.get("src/test/resources/eu/gaki/ffp/freeboxFilePusher.properties"));
         
         Assert.assertEquals("www-data/rss.xml", cs.getRssLocation());
         

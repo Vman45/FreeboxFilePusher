@@ -40,10 +40,9 @@ import old.ttorrent.client.peer.SharingPeer;
 import old.ttorrent.client.storage.FileCollectionStorage;
 import old.ttorrent.client.storage.FileStorage;
 import old.ttorrent.client.storage.TorrentByteStorage;
-import old.ttorrent.common.Torrent;
-
 import old.ttorrent.client.strategy.RequestStrategy;
 import old.ttorrent.client.strategy.RequestStrategyImplRarest;
+import old.ttorrent.common.Torrent;
 
 
 /**

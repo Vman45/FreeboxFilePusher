@@ -30,11 +30,10 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.gaki.ffp.bittorrent.SeederClient;
 import old.ttorrent.common.Peer;
 import old.ttorrent.common.Torrent;
 import old.ttorrent.common.protocol.TrackerMessage.AnnounceRequestMessage.RequestEvent;
-
-import eu.gaki.ffp.bittorrent.SeederClient;
 
 
 /**

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<java version="1.8.0_77" class="java.beans.XMLDecoder">
+ <object class="eu.gaki.ffp.domain.FilePusher" id="FilePusher0">
+  <void property="itemWatched">
+   <void method="add">
+    <object class="eu.gaki.ffp.domain.FfpItem" id="FfpItem0">
+     <void property="ffpFiles">
+      <void method="add">
+       <object class="eu.gaki.ffp.domain.FfpFile">
+        <void property="pathUri">
+         <object class="java.net.URI">
+          <string>file:///S:/eclipse/workspace/FreeboxFilePusher/toto/docteur01</string>
+         </object>
+        </void>
+        <void property="size">
+         <long>42</long>
+        </void>
+       </object>
+      </void>
+     </void>
+     <void property="status">
+      <object class="java.lang.Enum" method="valueOf">
+       <class>eu.gaki.ffp.domain.StatusEnum</class>
+       <string>ARCHIVED</string>
+      </object>
+     </void>
+    </object>
+   </void>
+  </void>
+ </object>
+</java>

@@ -18,8 +18,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.gaki.ffp.FolderListener;
-import eu.gaki.ffp.RssFileItem;
 import eu.gaki.ffp.compress.FilesCompresor;
+import eu.gaki.ffp.domain.RssFileItem;
 
 /**
  * The listener interface for receiving httpFolder events. The class that is

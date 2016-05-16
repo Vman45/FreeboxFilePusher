@@ -1,9 +1,8 @@
 /*
- * 
+ *
  */
 package eu.gaki.ffp.service;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -14,6 +13,9 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Use for get configuration parameters.
+ */
 public class ConfigService {
 
     /** The Constant LOGGER. */
@@ -22,6 +24,14 @@ public class ConfigService {
     /** The configuration. */
     private Properties configuration;
 
+    /**
+     * Instantiates a new config service.
+     *
+     * @param configFile
+     *            the config file
+     * @throws IOException
+     *             Signals that an I/O exception has occurred.
+     */
     public ConfigService(final Path configFile) throws IOException {
 	loadConfigurationFile(configFile);
     }
@@ -59,8 +69,8 @@ public class ConfigService {
      * @param propertiesfileLocation
      *            the propertiesfile location
      * @return the configuration input stream
-     * @throws FileNotFoundException
-     *             the file not found exception
+     * @throws IOException
+     *             Signals that an I/O exception has occurred.
      */
     private InputStream getConfigurationInputStream(final Path propertiesfileLocation) throws IOException {
 	InputStream configurationInputStream = null;
@@ -74,11 +84,48 @@ public class ConfigService {
 	return configurationInputStream;
     }
 
+    /**
+     * Gets the rss location.
+     *
+     * @return the rss location
+     */
     public String getRssLocation() {
 	return configuration.getProperty("rss.location", "rss.xml");
     }
 
+    /**
+     * Gets the rss url.
+     *
+     * @return the rss url
+     */
     public String getRssUrl() {
 	return configuration.getProperty("rss.url", "http://unknown/${file.name}");
+    }
+
+    /**
+     * Checks if is enable bittorent.
+     *
+     * @return the boolean
+     */
+    public Boolean isEnableBittorent() {
+	return Boolean.valueOf(configuration.getProperty("ffp.enable.bittorrent", "false"));
+    }
+
+    /**
+     * Checks if is enable http.
+     *
+     * @return the boolean
+     */
+    public Boolean isEnableHttp() {
+	return Boolean.valueOf(configuration.getProperty("ffp.enable.http", "true"));
+    }
+
+    /**
+     * Gets the repeat interval.
+     *
+     * @return the repeat interval
+     */
+    public Long getRepeatInterval() {
+	return Long.valueOf(configuration.getProperty("folder.scan.interval.seconds", "600"));
     }
 }

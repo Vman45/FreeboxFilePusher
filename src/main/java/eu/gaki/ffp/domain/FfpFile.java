@@ -10,14 +10,14 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
-// TODO: Auto-generated Javadoc
 /**
- * File.
+ * Represent a physical file or folder.
  */
 public class FfpFile {
 
-    /** The file path. */
+    /** TRANSIENT : The file path. */
     private Path path = null;
 
     /** The path uri. */
@@ -127,6 +127,27 @@ public class FfpFile {
      */
     public Long getSize() {
 	return this.size;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean equals(final Object obj) {
+	boolean result = false;
+	if (obj instanceof FfpFile) {
+	    final FfpFile i = (FfpFile) obj;
+	    result = Objects.equals(getPathUri(), i.getPathUri());
+	}
+	return result;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int hashCode() {
+	return Objects.hashCode(getPathUri());
     }
 
 }

@@ -1,4 +1,7 @@
-package eu.gaki.ffp;
+/*
+ *
+ */
+package eu.gaki.ffp.service;
 
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -9,20 +12,28 @@ import java.nio.file.StandardOpenOption;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Locale;
-import java.util.Properties;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.gaki.ffp.domain.RssFileItem;
+
+// TODO: Auto-generated Javadoc
 /**
- * The Class TorrentRss.
+ * Generate an RSS file.
  */
-public class RssFileGenerator {
+public class RssService {
+
+    /** The Constant ITEM_RSS_TEMPLATE. */
+    private static final String ITEM_RSS_TEMPLATE = "itemRss.template";
+
+    /** The Constant MAIN_RSS_TEMPLATE. */
+    private static final String MAIN_RSS_TEMPLATE = "mainRss.template";
 
     /** The Constant LOGGER. */
-    private static final Logger LOGGER = LoggerFactory.getLogger(RssFileGenerator.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RssService.class);
 
     /** The main rss. */
     private String mainRss;
@@ -34,14 +45,23 @@ public class RssFileGenerator {
     private Collection<RssFileItem> rssFileItems;
 
     /** The rss date formateur. */
-    private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);;
+    private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z",
+	    Locale.ENGLISH);
+
+    /** The config service. */
+    private final ConfigService configService;
 
     /**
      * Instantiates a new torrent rss.
+     *
+     * @param configService
+     *            the config service
      */
-    public RssFileGenerator() {
-	try (InputStream mainRssStream = RssFileGenerator.class.getResourceAsStream("mainRss.template");
-		InputStream itemRssStream = RssFileGenerator.class.getResourceAsStream("itemRss.template")) {
+    public RssService(final ConfigService configService) {
+	this.configService = configService;
+	// Get template files
+	try (InputStream mainRssStream = RssService.class.getResourceAsStream(MAIN_RSS_TEMPLATE);
+		InputStream itemRssStream = RssService.class.getResourceAsStream(ITEM_RSS_TEMPLATE)) {
 	    mainRss = IOUtils.toString(mainRssStream);
 	    itemRss = IOUtils.toString(itemRssStream);
 	} catch (final Exception e) {
@@ -59,17 +79,17 @@ public class RssFileGenerator {
      *            the torrent files
      * @return the file
      */
-    public Path generateRss(final Properties configuration, final Collection<RssFileItem> rssFileItems) {
+    public Path generateRss(final Collection<RssFileItem> rssFileItems) {
 
 	// Get RSS file location
-	final String rssLocation = configuration.getProperty("rss.location", "rss.xml");
+	final String rssLocation = configService.getRssLocation();
 	final Path rssFile = FileSystems.getDefault().getPath(rssLocation);
 
 	// If something change rewrite the RSS file
 	if (isRssItemsChanged(rssFileItems)) {
 	    this.rssFileItems = rssFileItems;
 	    // Get RSS file URL
-	    final String rssUrlTemplate = configuration.getProperty("rss.url", "http://unknown/${file.name}");
+	    final String rssUrlTemplate = configService.getRssUrl();
 	    final String rssUrl = rssUrlTemplate.replace("${file.name}", FilenameUtils.getName(rssLocation));
 	    // Get torrent file URL
 

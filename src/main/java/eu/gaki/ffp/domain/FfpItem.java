@@ -1,11 +1,16 @@
+/*
+ *
+ */
 package eu.gaki.ffp.domain;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
-// TODO: Auto-generated Javadoc
 /**
- * Represent a set of ffpFiles to be sended in the same time.
+ * Represent a set of FfpFile to be sended in the same time.
  */
 public class FfpItem {
 
@@ -23,7 +28,7 @@ public class FfpItem {
      * @param ffpFiles
      *            the new ffp files
      */
-    public void setffpFiles(List<FfpFile> ffpFiles) {
+    public void setffpFiles(final List<FfpFile> ffpFiles) {
 	this.ffpFiles = ffpFiles;
     }
 
@@ -42,7 +47,7 @@ public class FfpItem {
      * @param file
      *            the file
      */
-    public void addFile(FfpFile file) {
+    public void addFile(final FfpFile file) {
 	ffpFiles.add(file);
     }
 
@@ -52,7 +57,7 @@ public class FfpItem {
      * @param status
      *            the new status
      */
-    public void setStatus(StatusEnum status) {
+    public void setStatus(final StatusEnum status) {
 	this.status = status;
     }
 
@@ -63,6 +68,40 @@ public class FfpItem {
      */
     public StatusEnum getStatus() {
 	return this.status;
+    }
+
+    /**
+     * Search an {@link FfpFile} by {@link URI}
+     *
+     * @param uri
+     *            The searched {@link URI}
+     * @return
+     */
+    public List<FfpFile> contains(final URI uri) {
+	final List<FfpFile> result = getFfpFiles().parallelStream().filter(p -> Objects.equals(uri, p.getPathUri()))
+		.collect(Collectors.toList());
+	return result;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean equals(final Object obj) {
+	boolean result = false;
+	if (obj instanceof FfpItem) {
+	    final FfpItem i = (FfpItem) obj;
+	    result = Objects.equals(getFfpFiles(), i.getFfpFiles());
+	}
+	return result;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int hashCode() {
+	return Objects.hashCode(getFfpFiles());
     }
 
 }

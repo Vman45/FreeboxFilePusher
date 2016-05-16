@@ -1,4 +1,4 @@
-package eu.gaki.ffp;
+package eu.gaki.ffp.domain;
 
 import java.util.Date;
 import java.util.Objects;

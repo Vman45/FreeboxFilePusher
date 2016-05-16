@@ -1,5 +1,5 @@
 /*
- * 
+ *
  */
 package eu.gaki.ffp.domain;
 
@@ -10,18 +10,33 @@ package eu.gaki.ffp.domain;
 public enum StatusEnum {
 
     /** The watch. */
-    WATCH,
+    WATCH(10),
 
     /** The to send. */
-    TO_SEND,
+    TO_SEND(20),
 
     /** The sending. */
-    SENDING,
+    SENDING(30),
 
     /** The sended. */
-    SENDED,
+    SENDED(40),
 
     /** The archived. */
-    ARCHIVED
+    ARCHIVED(50);
+
+    /**
+     * Order in the lifecycle
+     */
+    private int order = 0;
+
+    /**
+     * Constructor.
+     *
+     * @param order
+     *            the order in the lifecycle.
+     */
+    private StatusEnum(final int order) {
+	this.order = order;
+    }
 
 }

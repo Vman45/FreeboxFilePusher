@@ -6,25 +6,24 @@ package eu.gaki.ffp.domain;
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO: Auto-generated Javadoc
 /**
- * Objet principal.
+ * Main database object.
  */
 public class FilePusher {
 
     /**
-     * List of filesList to watch by the system.
+     * List of FfpItem used by the system.
      */
-    private List<FfpItem> itemWatched = new ArrayList<>();
+    private List<FfpItem> items = new ArrayList<>();
 
     /**
      * Sets the item watched.
      *
-     * @param itemWatched
+     * @param items
      *            the new item watched
      */
-    public void setItemWatched(final List<FfpItem> itemWatched) {
-	this.itemWatched = itemWatched;
+    public void setItems(final List<FfpItem> items) {
+	this.items = items;
     }
 
     /**
@@ -32,8 +31,8 @@ public class FilePusher {
      *
      * @return the item watched
      */
-    public List<FfpItem> getItemWatched() {
-	return this.itemWatched;
+    public List<FfpItem> getItems() {
+	return this.items;
     }
 
     /**
@@ -43,7 +42,7 @@ public class FilePusher {
      *            the item
      */
     public void addFfpItem(final FfpItem item) {
-	itemWatched.add(item);
+	items.add(item);
     }
 
 }

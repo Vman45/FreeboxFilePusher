@@ -31,7 +31,7 @@ import com.turn.ttorrent.tracker.TrackedTorrent;
 import com.turn.ttorrent.tracker.Tracker;
 
 import eu.gaki.ffp.FolderListener;
-import eu.gaki.ffp.RssFileItem;
+import eu.gaki.ffp.domain.RssFileItem;
 
 /**
  * The listener interface for receiving bittorrentFolder events. The class that

@@ -1,13 +1,12 @@
+/*
+ *
+ */
 package eu.gaki.ffp;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Locale;
-import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -19,6 +18,10 @@ import org.apache.commons.daemon.DaemonInitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.gaki.ffp.domain.RssFileItem;
+import eu.gaki.ffp.service.ConfigService;
+import eu.gaki.ffp.service.RssService;
+
 /**
  * The Class FreeboxFilePusher.
  *
@@ -29,20 +32,14 @@ public class FreeboxFilePusher implements Daemon {
     /** The Constant LOGGER. */
     private static final Logger LOGGER = LoggerFactory.getLogger(FreeboxFilePusher.class);
 
-    /** The Constant DEFAULT_REPEAT_INTERVAL. */
-    private static final String DEFAULT_REPEAT_INTERVAL = "600";
-
     /** The watch executor. */
     private ScheduledExecutorService watchExecutor;
-
-    /** The configuration. */
-    private Properties configuration;
 
     /** The folders watcher runnable. */
     private FoldersWatcherRunnable foldersWatcherRunnable;
 
-    /** The rss file generator. */
-    private RssFileGenerator rssFileGenerator;
+    /** The config service. */
+    private ConfigService configService;
 
     /**
      * {@inheritDoc}
@@ -60,78 +57,29 @@ public class FreeboxFilePusher implements Daemon {
 	final String[] args = context.getArguments();
 
 	// Load configuration file
-	loadConfigurationFile(args);
+	final Path configPath = Paths.get("freeboxFilePusher.properties");
+	configService = new ConfigService(configPath);
 
 	// Create executor
 	watchExecutor = Executors.newSingleThreadScheduledExecutor();
 
 	// Create Rss generator
-	rssFileGenerator = new RssFileGenerator();
+	final RssService rssFileGenerator = new RssService(configService);
 	// Initialize the rss feed to empty
-	rssFileGenerator.generateRss(configuration, new ArrayList<RssFileItem>());
+	rssFileGenerator.generateRss(new ArrayList<RssFileItem>());
 
 	// Create foldersWatcherRunnable
-	foldersWatcherRunnable = new FoldersWatcherRunnable(configuration, rssFileGenerator);
+	foldersWatcherRunnable = new FoldersWatcherRunnable(null, rssFileGenerator);
 
 	// Add configured listener
-	final String enableBittorent = configuration.getProperty("ffp.enable.bittorrent", "false");
-	final String enableHttp = configuration.getProperty("ffp.enable.http", "true");
-
-	if (Boolean.valueOf(enableBittorent)) {
-	    foldersWatcherRunnable
-		    .addFolderListener(new eu.gaki.ffp.bittorrent.BittorrentFolderListener(configuration));
+	if (configService.isEnableBittorent()) {
+	    foldersWatcherRunnable.addFolderListener(new eu.gaki.ffp.bittorrent.BittorrentFolderListener(null));
 	}
 
-	if (Boolean.valueOf(enableHttp)) {
-	    foldersWatcherRunnable.addFolderListener(new eu.gaki.ffp.http.HttpFolderListener(configuration));
+	if (configService.isEnableHttp()) {
+	    foldersWatcherRunnable.addFolderListener(new eu.gaki.ffp.http.HttpFolderListener(null));
 	}
 
-    }
-
-    /**
-     * Load configuration file.
-     *
-     * @param args
-     *            the args
-     * @throws IOException
-     *             Signals that an I/O exception has occurred.
-     */
-    private void loadConfigurationFile(final String[] args) throws IOException {
-	configuration = new Properties();
-	String propertiesfileLocation = "freeboxFilePusher.properties";
-	if (args != null && args.length == 1) {
-	    propertiesfileLocation = args[0];
-	}
-	try (InputStream configurationInputStream = getConfigurationInputStream(propertiesfileLocation)) {
-	    // Try to load from disk
-	    if (configurationInputStream != null) {
-		configuration.load(configurationInputStream);
-	    }
-	} catch (final IOException e) {
-	    LOGGER.error("Cannot load configuration file: {}", e.getMessage(), e);
-	    throw e;
-	}
-    }
-
-    /**
-     * Gets the configuration input stream.
-     *
-     * @param propertiesfileLocation
-     *            the propertiesfile location
-     * @return the configuration input stream
-     * @throws FileNotFoundException
-     *             the file not found exception
-     */
-    private InputStream getConfigurationInputStream(final String propertiesfileLocation) throws FileNotFoundException {
-	InputStream configurationInputStream = null;
-	final File diskFile = new File(propertiesfileLocation);
-	if (diskFile.isFile()) {
-	    configurationInputStream = new FileInputStream(diskFile);
-	} else if (getClass().getResourceAsStream(propertiesfileLocation) != null) {
-	    // Try to load from classpath
-	    configurationInputStream = getClass().getResourceAsStream(propertiesfileLocation);
-	}
-	return configurationInputStream;
     }
 
     /**
@@ -140,9 +88,7 @@ public class FreeboxFilePusher implements Daemon {
     @Override
     public void start() throws Exception {
 	LOGGER.trace("Start watching...");
-	final String repeatInterval = configuration.getProperty("folder.scan.interval.seconds",
-		DEFAULT_REPEAT_INTERVAL);
-	watchExecutor.scheduleWithFixedDelay(foldersWatcherRunnable, 10, Long.valueOf(repeatInterval),
+	watchExecutor.scheduleWithFixedDelay(foldersWatcherRunnable, 10, configService.getRepeatInterval(),
 		TimeUnit.SECONDS);
     }
 
@@ -162,7 +108,6 @@ public class FreeboxFilePusher implements Daemon {
     public void destroy() {
 	LOGGER.trace("Destroy watching...");
 	watchExecutor = null;
-	configuration = null;
 	foldersWatcherRunnable = null;
     }
 

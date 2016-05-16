@@ -1,3 +1,6 @@
+/*
+ * 
+ */
 package eu.gaki.ffp;
 
 import java.io.IOException;
@@ -20,6 +23,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.gaki.ffp.domain.RssFileItem;
+import eu.gaki.ffp.service.RssService;
+
 /**
  * The Class FreeboxFilePusherRunnable.
  */
@@ -35,7 +41,7 @@ public class FoldersWatcherRunnable implements Runnable {
     private final List<FolderListener> listeners = new ArrayList<>();
 
     /** The torrent rss. */
-    private final RssFileGenerator rssFileGenerator;
+    private final RssService rssFileGenerator;
 
     /** The folders to watch. */
     private final List<Path> foldersToWatch;
@@ -48,7 +54,7 @@ public class FoldersWatcherRunnable implements Runnable {
      * @param rssFileGenerator
      *            the rss file generator
      */
-    public FoldersWatcherRunnable(final Properties configuration, final RssFileGenerator rssFileGenerator) {
+    public FoldersWatcherRunnable(final Properties configuration, final RssService rssFileGenerator) {
 	this.configuration = configuration;
 	this.rssFileGenerator = rssFileGenerator;
 	this.foldersToWatch = getFoldersToWatch();
@@ -85,7 +91,7 @@ public class FoldersWatcherRunnable implements Runnable {
 				}
 			    }
 			}
-		    } catch (Exception e) {
+		    } catch (final Exception e) {
 			LOGGER.error(e.getMessage(), e);
 		    }
 		} else {
@@ -102,7 +108,7 @@ public class FoldersWatcherRunnable implements Runnable {
 	    });
 
 	    // Generate RSS file
-	    rssFileGenerator.generateRss(configuration, rssFileItems);
+	    rssFileGenerator.generateRss(rssFileItems);
 
 	} catch (final Exception e) {
 	    LOGGER.error("Cannot watch folder:" + e.getMessage(), e);

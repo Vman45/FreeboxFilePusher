@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Set;
 
+import eu.gaki.ffp.domain.RssFileItem;
+
 /**
  * The listener interface for receiving folder events. The class that is
  * interested in processing a folder event implements this interface, and the

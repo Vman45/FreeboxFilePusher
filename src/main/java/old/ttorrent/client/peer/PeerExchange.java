@@ -31,14 +31,13 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import old.ttorrent.client.SharedTorrent;
 import old.ttorrent.common.protocol.PeerMessage;
 import old.ttorrent.common.protocol.PeerMessage.Type;
 
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Incoming and outgoing peer communication system.
@@ -73,8 +72,8 @@ import old.ttorrent.common.protocol.PeerMessage.Type;
  */
 class PeerExchange {
 
-	private static final Logger logger =
-		LoggerFactory.getLogger(PeerExchange.class);
+	private static final Logger logger = LoggerFactory
+			.getLogger(PeerExchange.class);
 
 	private static final int KEEP_ALIVE_IDLE_MINUTES = 2;
 
@@ -92,9 +91,12 @@ class PeerExchange {
 	/**
 	 * Initialize and start a new peer exchange.
 	 *
-	 * @param peer The remote peer to communicate with.
-	 * @param torrent The torrent we're exchanging on with the peer.
-	 * @param channel A channel on the connected socket to the peer.
+	 * @param peer
+	 *            The remote peer to communicate with.
+	 * @param torrent
+	 *            The torrent we're exchanging on with the peer.
+	 * @param channel
+	 *            A channel on the connected socket to the peer.
 	 */
 	public PeerExchange(SharingPeer peer, SharedTorrent torrent,
 			SocketChannel channel) throws SocketException {
@@ -106,17 +108,15 @@ class PeerExchange {
 		this.sendQueue = new LinkedBlockingQueue<PeerMessage>();
 
 		if (!this.peer.hasPeerId()) {
-			throw new IllegalStateException("Peer does not have a " +
-					"peer ID. Was the handshake made properly?");
+			throw new IllegalStateException("Peer does not have a "
+					+ "peer ID. Was the handshake made properly?");
 		}
 
 		this.in = new IncomingThread();
-		this.in.setName("bt-peer(" +
-			this.peer.getShortHexPeerId() + ")-recv");
+		this.in.setName("bt-peer(" + this.peer.getShortHexPeerId() + ")-recv");
 
 		this.out = new OutgoingThread();
-		this.out.setName("bt-peer(" +
-			this.peer.getShortHexPeerId() + ")-send");
+		this.out.setName("bt-peer(" + this.peer.getShortHexPeerId() + ")-send");
 		this.out.setDaemon(true);
 
 		// Automatically start the exchange activity loops
@@ -124,8 +124,8 @@ class PeerExchange {
 		this.in.start();
 		this.out.start();
 
-		logger.debug("Started peer exchange with {} for {}.",
-			this.peer, this.torrent);
+		logger.debug("Started peer exchange with {} for {}.", this.peer,
+				this.torrent);
 
 		// If we have pieces, start by sending a BITFIELD message to the peer.
 		BitSet pieces = this.torrent.getCompletedPieces();
@@ -137,7 +137,8 @@ class PeerExchange {
 	/**
 	 * Register a new message listener to receive messages.
 	 *
-	 * @param listener The message listener object.
+	 * @param listener
+	 *            The message listener object.
 	 */
 	public void register(MessageListener listener) {
 		this.listeners.add(listener);
@@ -154,11 +155,12 @@ class PeerExchange {
 	 * Send a message to the connected peer.
 	 *
 	 * <p>
-	 * The message is queued in the outgoing message queue and will be
-	 * processed as soon as possible.
+	 * The message is queued in the outgoing message queue and will be processed
+	 * as soon as possible.
 	 * </p>
 	 *
-	 * @param message The message object to send.
+	 * @param message
+	 *            The message object to send.
 	 */
 	public void send(PeerMessage message) {
 		try {
@@ -188,8 +190,8 @@ class PeerExchange {
 	}
 
 	/**
-	 * Abstract Thread subclass that allows conditional rate limiting
-	 * for <code>PIECE</code> messages.
+	 * Abstract Thread subclass that allows conditional rate limiting for
+	 * <code>PIECE</code> messages.
 	 * 
 	 * <p>
 	 * To impose rate limits, we only want to throttle when processing PIECE
@@ -216,15 +218,19 @@ class PeerExchange {
 		 * </p>
 		 * 
 		 * <p>
-		 * Ideally, it would calculate the optimal sleep time necessary to hit
-		 * a desired throughput rather than continuously adjust toward a goal.
+		 * Ideally, it would calculate the optimal sleep time necessary to hit a
+		 * desired throughput rather than continuously adjust toward a goal.
 		 * </p>
 		 * 
-		 * @param maxRate the target rate in kB/second.
-		 * @param messageSize the size, in bytes, of the last message read/written.
-		 * @param message the last <code>PeerMessage</code> read/written.
+		 * @param maxRate
+		 *            the target rate in kB/second.
+		 * @param messageSize
+		 *            the size, in bytes, of the last message read/written.
+		 * @param message
+		 *            the last <code>PeerMessage</code> read/written.
 		 */
-		protected void rateLimit(double maxRate, long messageSize, PeerMessage message) {
+		protected void rateLimit(double maxRate, long messageSize,
+				PeerMessage message) {
 			if (message.getType() != Type.PIECE || maxRate <= 0) {
 				return;
 			}
@@ -238,9 +244,7 @@ class PeerExchange {
 					Thread.sleep(this.sleep);
 					this.sleep += 50;
 				} else {
-					this.sleep = this.sleep > 50
-						? this.sleep - 50
-						: 0;
+					this.sleep = this.sleep > 50 ? this.sleep - 50 : 0;
 				}
 			} catch (InterruptedException e) {
 				// Not critical, eat it.
@@ -263,15 +267,18 @@ class PeerExchange {
 	private class IncomingThread extends RateLimitThread {
 
 		/**
-		 * Read data from the incoming channel of the socket using a {@link
-		 * Selector}.
+		 * Read data from the incoming channel of the socket using a
+		 * {@link Selector}.
 		 *
-		 * @param selector The socket selector into which the peer socket has
-		 *	been inserted.
-		 * @param buffer A {@link ByteBuffer} to put the read data into.
+		 * @param selector
+		 *            The socket selector into which the peer socket has been
+		 *            inserted.
+		 * @param buffer
+		 *            A {@link ByteBuffer} to put the read data into.
 		 * @return The number of bytes read.
 		 */
-		private long read(Selector selector, ByteBuffer buffer) throws IOException {
+		private long read(Selector selector, ByteBuffer buffer)
+				throws IOException {
 			if (selector.select() == 0 || !buffer.hasRemaining()) {
 				return 0;
 			}
@@ -283,7 +290,8 @@ class PeerExchange {
 				if (key.isReadable()) {
 					int read = ((SocketChannel) key.channel()).read(buffer);
 					if (read < 0) {
-						throw new IOException("Unexpected end-of-stream while reading");
+						throw new IOException(
+								"Unexpected end-of-stream while reading");
 					}
 					size += read;
 				}
@@ -294,17 +302,15 @@ class PeerExchange {
 		}
 
 		private void handleIOE(IOException ioe) {
-			logger.debug("Could not read message from {}: {}",
-				peer,
-				ioe.getMessage() != null
-					? ioe.getMessage()
-					: ioe.getClass().getName());
+			logger.debug("Could not read message from {}: {}", peer, ioe
+					.getMessage() != null ? ioe.getMessage() : ioe.getClass()
+					.getName());
 			peer.unbind(true);
 		}
 
 		@Override
 		public void run() {
-			ByteBuffer buffer = ByteBuffer.allocateDirect(1*1024*1024);
+			ByteBuffer buffer = ByteBuffer.allocateDirect(1 * 1024 * 1024);
 			Selector selector = null;
 
 			try {
@@ -323,7 +329,8 @@ class PeerExchange {
 
 					// Reset the buffer limit to the expected message size.
 					int pstrlen = buffer.getInt(0);
-					buffer.limit(PeerMessage.MESSAGE_LENGTH_FIELD_SIZE + pstrlen);
+					buffer.limit(PeerMessage.MESSAGE_LENGTH_FIELD_SIZE
+							+ pstrlen);
 
 					long size = 0;
 					while (!stop && buffer.hasRemaining()) {
@@ -333,13 +340,14 @@ class PeerExchange {
 					buffer.rewind();
 
 					try {
-						PeerMessage message = PeerMessage.parse(buffer, torrent);
+						PeerMessage message = PeerMessage
+								.parse(buffer, torrent);
 						logger.trace("Received {} from {}", message, peer);
 
 						// Wait if needed to reach configured download rate.
 						this.rateLimit(
-							PeerExchange.this.torrent.getMaxDownloadRate(),
-							size, message);
+								PeerExchange.this.torrent.getMaxDownloadRate(),
+								size, message);
 
 						for (MessageListener listener : listeners)
 							listener.handleMessage(message);
@@ -404,27 +412,26 @@ class PeerExchange {
 						ByteBuffer data = message.getData();
 						long size = 0;
 						while (!stop && data.hasRemaining()) {
-						    int written = channel.write(data);
-						    size += written;
+							int written = channel.write(data);
+							size += written;
 							if (written < 0) {
 								throw new EOFException(
-									"Reached end of stream while writing");
+										"Reached end of stream while writing");
 							}
 						}
 
 						// Wait if needed to reach configured upload rate.
-						this.rateLimit(PeerExchange.this.torrent.getMaxUploadRate(),
-							size, message);
+						this.rateLimit(
+								PeerExchange.this.torrent.getMaxUploadRate(),
+								size, message);
 					} catch (InterruptedException ie) {
 						// Ignore and potentially terminate
 					}
 				}
 			} catch (IOException ioe) {
-				logger.debug("Could not send message to {}: {}",
-					peer,
-					ioe.getMessage() != null
-						? ioe.getMessage()
-						: ioe.getClass().getName());
+				logger.debug("Could not send message to {}: {}", peer, ioe
+						.getMessage() != null ? ioe.getMessage() : ioe
+						.getClass().getName());
 				peer.unbind(true);
 			}
 		}

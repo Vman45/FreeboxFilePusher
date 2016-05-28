@@ -19,15 +19,14 @@ import java.nio.ByteBuffer;
 
 import old.ttorrent.common.protocol.TrackerMessage;
 
-
 /**
  * The connection response message for the UDP tracker protocol.
  *
  * @author mpetazzoni
  */
-public class UDPConnectResponseMessage
-	extends UDPTrackerMessage.UDPTrackerResponseMessage
-	implements TrackerMessage.ConnectionResponseMessage {
+public class UDPConnectResponseMessage extends
+		UDPTrackerMessage.UDPTrackerResponseMessage implements
+		TrackerMessage.ConnectionResponseMessage {
 
 	private static final int UDP_CONNECT_RESPONSE_MESSAGE_SIZE = 16;
 
@@ -36,7 +35,7 @@ public class UDPConnectResponseMessage
 	private final long connectionId;
 
 	private UDPConnectResponseMessage(ByteBuffer data, int transactionId,
-		long connectionId) {
+			long connectionId) {
 		super(Type.CONNECT_RESPONSE, data);
 		this.transactionId = transactionId;
 		this.connectionId = connectionId;
@@ -57,32 +56,29 @@ public class UDPConnectResponseMessage
 	}
 
 	public static UDPConnectResponseMessage parse(ByteBuffer data)
-		throws MessageValidationException {
+			throws MessageValidationException {
 		if (data.remaining() != UDP_CONNECT_RESPONSE_MESSAGE_SIZE) {
 			throw new MessageValidationException(
-				"Invalid connect response message size!");
+					"Invalid connect response message size!");
 		}
 
 		if (data.getInt() != Type.CONNECT_RESPONSE.getId()) {
 			throw new MessageValidationException(
-				"Invalid action code for connection response!");
+					"Invalid action code for connection response!");
 		}
 
-		return new UDPConnectResponseMessage(data,
-			data.getInt(), // transactionId
-			data.getLong() // connectionId
+		return new UDPConnectResponseMessage(data, data.getInt(), // transactionId
+				data.getLong() // connectionId
 		);
 	}
 
 	public static UDPConnectResponseMessage craft(int transactionId,
-		long connectionId) {
+			long connectionId) {
 		ByteBuffer data = ByteBuffer
-			.allocate(UDP_CONNECT_RESPONSE_MESSAGE_SIZE);
+				.allocate(UDP_CONNECT_RESPONSE_MESSAGE_SIZE);
 		data.putInt(Type.CONNECT_RESPONSE.getId());
 		data.putInt(transactionId);
 		data.putLong(connectionId);
-		return new UDPConnectResponseMessage(data,
-			transactionId,
-			connectionId);
+		return new UDPConnectResponseMessage(data, transactionId, connectionId);
 	}
 }

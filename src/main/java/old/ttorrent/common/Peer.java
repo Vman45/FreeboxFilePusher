@@ -19,7 +19,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
-
 /**
  * A basic BitTorrent peer.
  *
@@ -41,7 +40,8 @@ public class Peer {
 	/**
 	 * Instantiate a new peer.
 	 *
-	 * @param address The peer's address, with port.
+	 * @param address
+	 *            The peer's address, with port.
 	 */
 	public Peer(InetSocketAddress address) {
 		this(address, null);
@@ -50,8 +50,10 @@ public class Peer {
 	/**
 	 * Instantiate a new peer.
 	 *
-	 * @param ip The peer's IP address.
-	 * @param port The peer's port.
+	 * @param ip
+	 *            The peer's IP address.
+	 * @param port
+	 *            The peer's port.
 	 */
 	public Peer(String ip, int port) {
 		this(new InetSocketAddress(ip, port), null);
@@ -60,9 +62,12 @@ public class Peer {
 	/**
 	 * Instantiate a new peer.
 	 *
-	 * @param ip The peer's IP address.
-	 * @param port The peer's port.
-	 * @param peerId The byte-encoded peer ID.
+	 * @param ip
+	 *            The peer's IP address.
+	 * @param port
+	 *            The peer's port.
+	 * @param peerId
+	 *            The byte-encoded peer ID.
 	 */
 	public Peer(String ip, int port, ByteBuffer peerId) {
 		this(new InetSocketAddress(ip, port), peerId);
@@ -71,14 +76,15 @@ public class Peer {
 	/**
 	 * Instantiate a new peer.
 	 *
-	 * @param address The peer's address, with port.
-	 * @param peerId The byte-encoded peer ID.
+	 * @param address
+	 *            The peer's address, with port.
+	 * @param peerId
+	 *            The byte-encoded peer ID.
 	 */
 	public Peer(InetSocketAddress address, ByteBuffer peerId) {
 		this.address = address;
-		this.hostId = String.format("%s:%d",
-			this.address.getAddress(),
-			this.address.getPort());
+		this.hostId = String.format("%s:%d", this.address.getAddress(),
+				this.address.getPort());
 
 		this.setPeerId(peerId);
 	}
@@ -100,7 +106,8 @@ public class Peer {
 	/**
 	 * Set a peer ID for this peer (usually during handshake).
 	 *
-	 * @param peerId The new peer ID for this peer.
+	 * @param peerId
+	 *            The new peer ID for this peer.
 	 */
 	public void setPeerId(ByteBuffer peerId) {
 		if (peerId != null) {
@@ -124,7 +131,8 @@ public class Peer {
 	 */
 	public String getShortHexPeerId() {
 		return String.format("..%s",
-			this.hexPeerId.substring(this.hexPeerId.length()-6).toUpperCase());
+				this.hexPeerId.substring(this.hexPeerId.length() - 6)
+						.toUpperCase());
 	}
 
 	/**
@@ -166,12 +174,11 @@ public class Peer {
 	 * Returns a human-readable representation of this peer.
 	 */
 	public String toString() {
-		StringBuilder s = new StringBuilder("peer://")
-			.append(this.getIp()).append(":").append(this.getPort())
-			.append("/");
+		StringBuilder s = new StringBuilder("peer://").append(this.getIp())
+				.append(":").append(this.getPort()).append("/");
 
 		if (this.hasPeerId()) {
-			s.append(this.hexPeerId.substring(this.hexPeerId.length()-6));
+			s.append(this.hexPeerId.substring(this.hexPeerId.length() - 6));
 		} else {
 			s.append("?");
 		}
@@ -192,9 +199,8 @@ public class Peer {
 			return false;
 		}
 
-		return this.hostId.equals(other.hostId) &&
-			(this.hasPeerId()
-				 ? this.hexPeerId.equals(other.hexPeerId)
-				 : true);
+		return this.hostId.equals(other.hostId)
+				&& (this.hasPeerId() ? this.hexPeerId.equals(other.hexPeerId)
+						: true);
 	}
 }

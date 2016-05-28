@@ -22,13 +22,13 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
+import old.ttorrent.common.Torrent;
+import old.ttorrent.tracker.TrackedTorrent;
+import old.ttorrent.tracker.Tracker;
+
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.turn.ttorrent.common.Torrent;
-import com.turn.ttorrent.tracker.TrackedTorrent;
-import com.turn.ttorrent.tracker.Tracker;
 
 import eu.gaki.ffp.FolderListener;
 import eu.gaki.ffp.domain.RssFileItem;
@@ -45,225 +45,249 @@ import eu.gaki.ffp.domain.RssFileItem;
  */
 public class BittorrentFolderListener implements FolderListener {
 
-    /** The Constant LOGGER. */
-    private static final Logger LOGGER = LoggerFactory.getLogger(BittorrentFolderListener.class);
+	/** The Constant LOGGER. */
+	private static final Logger LOGGER = LoggerFactory
+			.getLogger(BittorrentFolderListener.class);
 
-    /** The tracker. */
-    private Tracker tracker;
+	/** The tracker. */
+	private Tracker tracker;
 
-    /** The configuration. */
-    private final Properties configuration;
+	/** The configuration. */
+	private final Properties configuration;
 
-    /**
-     * Instantiates a new bittorrent folder listener.
-     *
-     * @param configuration
-     *            the configuration
-     */
-    public BittorrentFolderListener(final Properties configuration) {
-	this.configuration = configuration;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isAlreadyPushed(final Path path) {
-	boolean tracked = false;
-	if (tracker != null) {
-	    final Path torrentFile = computeTorrentFileName(path);
-	    // tracked = tracker.isTracked(torrentFile);
-	}
-	return tracked;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void scanPath(final Path folderScanned, final Path path) throws IOException {
-	// Share the file
-	Path torrentFile = computeTorrentFileName(path);
-	if (!Files.exists(torrentFile)) {
-	    // Create torrent file
-	    torrentFile = createTorrentFile(path);
-	}
-	if (torrentFile != null && Files.exists(torrentFile)) {
-	    startTracker();
-	    // if (tracker != null && !tracker.isTracked(torrentFile)) {
-	    // // Add file to tracker
-	    // final TrackedTorrent torrent = TrackedTorrent.load(torrentFile
-	    // .toFile());
-	    // torrent.setSeederClient(new SeederClient(configuration,
-	    // torrent, torrentFile, path));
-	    // tracker.announce(torrent);
-	    // LOGGER.info("Announce file: {}", torrentFile);
-	    // }
-	} else {
-	    LOGGER.error("cannot create torrent file.");
+	/**
+	 * Instantiates a new bittorrent folder listener.
+	 *
+	 * @param configuration
+	 *            the configuration
+	 */
+	public BittorrentFolderListener(final Properties configuration) {
+		this.configuration = configuration;
 	}
 
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void afterScans() {
-	if (tracker != null) {
-
-	    // Remove tracked file which no more exist
-	    final ArrayList<TrackedTorrent> trackedTorrents = new ArrayList<TrackedTorrent>(
-		    tracker.getTrackedTorrents());
-	    trackedTorrents.forEach(torrent -> {
-		// final SeederClient seederClient = torrent.getSeederClient();
-		// if (seederClient == null || seederClient.getTorrentFile() ==
-		// null || Files.notExists(seederClient.getTorrentFile())) {
-		// tracker.remove(torrent);
-		// LOGGER.info("Remove announce file: {}", torrent.getName());
-		// }
-	    });
-
-	    // If no more tracker torrent stop the tracker
-	    if (tracker.getTrackedTorrents().size() == 0) {
-		stopTracker();
-	    }
-	}
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Set<RssFileItem> getRssItemList() {
-	final Set<RssFileItem> rssFileItems = new HashSet<>();
-	if (tracker != null) {
-	    // Publish RSS file with tracked torrent files
-	    final Collection<TrackedTorrent> trackedTorrents = tracker.getTrackedTorrents();
-	    final String torrentUrlTemplate = configuration.getProperty("torrent.url", "http://unknown/${file.name}");
-	    trackedTorrents.forEach(torrent -> {
-		final RssFileItem rssFileItem = new RssFileItem();
-		// Rss link name
-		rssFileItem.setName(torrent.getName());
-		// Rss file URL
-		final String name = "";
-		// final String name =
-		// torrent.getSeederClient().getTorrentFile().getFileName().toString();
-		String nameUrl;
-		try {
-		    nameUrl = URLEncoder.encode(name, "UTF-8").replace("+", "%20");
-		} catch (final UnsupportedEncodingException e) {
-		    LOGGER.error("Error when URL encode the file name. Fallback without URL encode", e);
-		    nameUrl = name;
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean isAlreadyPushed(final Path path) {
+		boolean tracked = false;
+		if (tracker != null) {
+			final Path torrentFile = computeTorrentFileName(path);
+			// tracked = tracker.isTracked(torrentFile);
 		}
-		rssFileItem.setUrl(torrentUrlTemplate.replace("${file.name}", nameUrl));
-		// Rss file date
-		final Path torrentFile = null;
-		// final Path torrentFile = torrent.getSeederClient()
-		// .getTorrentFile();
-		FileTime lastModifiedTime;
-		try {
-		    lastModifiedTime = Files.getLastModifiedTime(torrentFile);
-		    rssFileItem.setDate(new Date(lastModifiedTime.toMillis()));
-		} catch (final Exception e) {
-		    LOGGER.error("Cannot determine the modification date of " + torrentFile, e);
-		    rssFileItem.setDate(new Date());
+		return tracked;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void scanPath(final Path folderScanned, final Path path)
+			throws IOException {
+		// Share the file
+		Path torrentFile = computeTorrentFileName(path);
+		if (!Files.exists(torrentFile)) {
+			// Create torrent file
+			torrentFile = createTorrentFile(path);
 		}
-		// Rss file size
-		try {
-		    rssFileItem.setSize(Files.size(torrentFile));
-		} catch (final Exception e) {
-		    LOGGER.error("Cannot compute the size of " + torrentFile, e);
-		    rssFileItem.setSize(0L);
+		if (torrentFile != null && Files.exists(torrentFile)) {
+			startTracker();
+			// if (tracker != null && !tracker.isTracked(torrentFile)) {
+			// // Add file to tracker
+			// final TrackedTorrent torrent = TrackedTorrent.load(torrentFile
+			// .toFile());
+			// torrent.setSeederClient(new SeederClient(configuration,
+			// torrent, torrentFile, path));
+			// tracker.announce(torrent);
+			// LOGGER.info("Announce file: {}", torrentFile);
+			// }
+		} else {
+			LOGGER.error("cannot create torrent file.");
 		}
-		rssFileItems.add(rssFileItem);
-	    });
-	}
-	return rssFileItems;
-    }
 
-    /**
-     * Creates the torrent file.
-     *
-     * @param file
-     *            the file
-     * @return the file
-     */
-    private Path createTorrentFile(final Path file) {
-	Path torrentFile = null;
-	torrentFile = computeTorrentFileName(file);
-
-	try (OutputStream fos = new FileOutputStream(torrentFile.toFile())) {
-	    final String trackerAnnounceUrl = configuration.getProperty("tracker.announce.url",
-		    "http://unkown:6969/announce");
-
-	    final URI announceURI = new URI(trackerAnnounceUrl);
-
-	    final String creator = String.format("%s (FreeboxFilePusher)", System.getProperty("user.name"));
-
-	    Torrent torrent = null;
-	    if (Files.isDirectory(file)) {
-		final File[] files = file.toFile().listFiles();
-		Arrays.sort(files);
-		torrent = Torrent.create(file.toFile(), Arrays.asList(files), announceURI, creator);
-	    } else {
-		torrent = Torrent.create(file.toFile(), announceURI, creator);
-	    }
-	    torrent.save(fos);
-	    LOGGER.info("Create torrent file: {}", torrentFile);
-	} catch (URISyntaxException | InterruptedException | IOException e) {
-	    LOGGER.error("Cannot create torrent file:" + e.getMessage(), e);
 	}
 
-	return torrentFile;
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void afterScans() {
+		if (tracker != null) {
 
-    /**
-     * Compute torrent file name.
-     *
-     * @param file
-     *            the file
-     * @return the file
-     */
-    private Path computeTorrentFileName(final Path file) {
-	Path torrentFile;
+			// Remove tracked file which no more exist
+			final ArrayList<TrackedTorrent> trackedTorrents = new ArrayList<TrackedTorrent>(
+					tracker.getTrackedTorrents());
+			trackedTorrents.forEach(torrent -> {
+				// final SeederClient seederClient = torrent.getSeederClient();
+				// if (seederClient == null || seederClient.getTorrentFile() ==
+				// null || Files.notExists(seederClient.getTorrentFile())) {
+				// tracker.remove(torrent);
+				// LOGGER.info("Remove announce file: {}", torrent.getName());
+				// }
+				});
 
-	String fileNameUrl = FilenameUtils.getBaseName(file.getFileName().toString());
-
-	torrentFile = FileSystems.getDefault().getPath(configuration.getProperty("torrent.file.folder", "www-data"),
-		fileNameUrl + configuration.getProperty("torrent.extention", ".torrent"));
-
-	return torrentFile;
-    }
-
-    /**
-     * Start the tracker if not already started.
-     *
-     * @throws NumberFormatException
-     *             the number format exception
-     * @throws IOException
-     *             Signals that an I/O exception has occurred.
-     */
-    private synchronized void startTracker() throws NumberFormatException, IOException {
-	if (tracker == null) {
-	    final String trackerPort = configuration.getProperty("torrent.tracker.port", "6969");
-	    final String trackerIp = configuration.getProperty("torrent.tracker.ip",
-		    InetAddress.getLocalHost().getHostName());
-	    tracker = new Tracker(new InetSocketAddress(trackerIp, Integer.valueOf(trackerPort)), "FreeboxFilePusher");
-	    tracker.start();
-	    LOGGER.info("Tracker starded {}:{}", trackerIp, trackerPort);
+			// If no more tracker torrent stop the tracker
+			if (tracker.getTrackedTorrents().size() == 0) {
+				stopTracker();
+			}
+		}
 	}
-    }
 
-    /**
-     * Stop the tracker if started.
-     */
-    private synchronized void stopTracker() {
-	if (tracker != null) {
-	    tracker.stop();
-	    tracker = null;
-	    LOGGER.info("Tracker stoped");
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Set<RssFileItem> getRssItemList() {
+		final Set<RssFileItem> rssFileItems = new HashSet<>();
+		if (tracker != null) {
+			// Publish RSS file with tracked torrent files
+			final Collection<TrackedTorrent> trackedTorrents = tracker
+					.getTrackedTorrents();
+			final String torrentUrlTemplate = configuration.getProperty(
+					"torrent.url", "http://unknown/${file.name}");
+			trackedTorrents
+					.forEach(torrent -> {
+						final RssFileItem rssFileItem = new RssFileItem();
+						// Rss link name
+						rssFileItem.setName(torrent.getName());
+						// Rss file URL
+						final String name = "";
+						// final String name =
+						// torrent.getSeederClient().getTorrentFile().getFileName().toString();
+						String nameUrl;
+						try {
+							nameUrl = URLEncoder.encode(name, "UTF-8").replace(
+									"+", "%20");
+						} catch (final UnsupportedEncodingException e) {
+							LOGGER.error(
+									"Error when URL encode the file name. Fallback without URL encode",
+									e);
+							nameUrl = name;
+						}
+						rssFileItem.setUrl(torrentUrlTemplate.replace(
+								"${file.name}", nameUrl));
+						// Rss file date
+						final Path torrentFile = null;
+						// final Path torrentFile = torrent.getSeederClient()
+						// .getTorrentFile();
+						FileTime lastModifiedTime;
+						try {
+							lastModifiedTime = Files
+									.getLastModifiedTime(torrentFile);
+							rssFileItem.setDate(new Date(lastModifiedTime
+									.toMillis()));
+						} catch (final Exception e) {
+							LOGGER.error(
+									"Cannot determine the modification date of "
+											+ torrentFile, e);
+							rssFileItem.setDate(new Date());
+						}
+						// Rss file size
+						try {
+							rssFileItem.setSize(Files.size(torrentFile));
+						} catch (final Exception e) {
+							LOGGER.error("Cannot compute the size of "
+									+ torrentFile, e);
+							rssFileItem.setSize(0L);
+						}
+						rssFileItems.add(rssFileItem);
+					});
+		}
+		return rssFileItems;
 	}
-    }
+
+	/**
+	 * Creates the torrent file.
+	 *
+	 * @param file
+	 *            the file
+	 * @return the file
+	 */
+	private Path createTorrentFile(final Path file) {
+		Path torrentFile = null;
+		torrentFile = computeTorrentFileName(file);
+
+		try (OutputStream fos = new FileOutputStream(torrentFile.toFile())) {
+			final String trackerAnnounceUrl = configuration.getProperty(
+					"tracker.announce.url", "http://unkown:6969/announce");
+
+			final URI announceURI = new URI(trackerAnnounceUrl);
+
+			final String creator = String.format("%s (FreeboxFilePusher)",
+					System.getProperty("user.name"));
+
+			Torrent torrent = null;
+			if (Files.isDirectory(file)) {
+				final File[] files = file.toFile().listFiles();
+				Arrays.sort(files);
+				torrent = Torrent.create(file.toFile(), Arrays.asList(files),
+						announceURI, creator);
+			} else {
+				torrent = Torrent.create(file.toFile(), announceURI, creator);
+			}
+			torrent.save(fos);
+			LOGGER.info("Create torrent file: {}", torrentFile);
+		} catch (URISyntaxException | InterruptedException | IOException e) {
+			LOGGER.error("Cannot create torrent file:" + e.getMessage(), e);
+		}
+
+		return torrentFile;
+	}
+
+	/**
+	 * Compute torrent file name.
+	 *
+	 * @param file
+	 *            the file
+	 * @return the file
+	 */
+	private Path computeTorrentFileName(final Path file) {
+		Path torrentFile;
+
+		String fileNameUrl = FilenameUtils.getBaseName(file.getFileName()
+				.toString());
+
+		torrentFile = FileSystems.getDefault().getPath(
+				configuration.getProperty("torrent.file.folder", "www-data"),
+				fileNameUrl
+						+ configuration.getProperty("torrent.extention",
+								".torrent"));
+
+		return torrentFile;
+	}
+
+	/**
+	 * Start the tracker if not already started.
+	 *
+	 * @throws NumberFormatException
+	 *             the number format exception
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
+	private synchronized void startTracker() throws NumberFormatException,
+			IOException {
+		if (tracker == null) {
+			final String trackerPort = configuration.getProperty(
+					"torrent.tracker.port", "6969");
+			final String trackerIp = configuration.getProperty(
+					"torrent.tracker.ip", InetAddress.getLocalHost()
+							.getHostName());
+			tracker = new Tracker(new InetSocketAddress(trackerIp,
+					Integer.valueOf(trackerPort)), "FreeboxFilePusher");
+			tracker.start();
+			LOGGER.info("Tracker starded {}:{}", trackerIp, trackerPort);
+		}
+	}
+
+	/**
+	 * Stop the tracker if started.
+	 */
+	private synchronized void stopTracker() {
+		if (tracker != null) {
+			tracker.stop();
+			tracker = null;
+			LOGGER.info("Tracker stoped");
+		}
+	}
 
 }

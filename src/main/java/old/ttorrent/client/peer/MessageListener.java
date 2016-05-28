@@ -19,7 +19,6 @@ import java.util.EventListener;
 
 import old.ttorrent.common.protocol.PeerMessage;
 
-
 /**
  * EventListener interface for objects that want to receive incoming messages
  * from peers.

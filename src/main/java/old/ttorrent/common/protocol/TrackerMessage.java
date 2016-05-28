@@ -20,7 +20,6 @@ import java.util.List;
 
 import old.ttorrent.common.Peer;
 
-
 /**
  * BitTorrent tracker protocol messages representations.
  *
@@ -39,14 +38,9 @@ public abstract class TrackerMessage {
 	 * Message type.
 	 */
 	public enum Type {
-		UNKNOWN(-1),
-		CONNECT_REQUEST(0),
-		CONNECT_RESPONSE(0),
-		ANNOUNCE_REQUEST(1),
-		ANNOUNCE_RESPONSE(1),
-		SCRAPE_REQUEST(2),
-		SCRAPE_RESPONSE(2),
-		ERROR(3);
+		UNKNOWN(-1), CONNECT_REQUEST(0), CONNECT_RESPONSE(0), ANNOUNCE_REQUEST(
+				1), ANNOUNCE_RESPONSE(1), SCRAPE_REQUEST(2), SCRAPE_RESPONSE(2), ERROR(
+				3);
 
 		private final int id;
 
@@ -65,9 +59,11 @@ public abstract class TrackerMessage {
 	/**
 	 * Constructor for the base tracker message type.
 	 *
-	 * @param type The message type.
-	 * @param data A byte buffer containing the binary data of the message (a
-	 * B-encoded map, a UDP packet data, etc.).
+	 * @param type
+	 *            The message type.
+	 * @param data
+	 *            A byte buffer containing the binary data of the message (a
+	 *            B-encoded map, a UDP packet data, etc.).
 	 */
 	protected TrackerMessage(Type type, ByteBuffer data) {
 		this.type = type;
@@ -108,7 +104,6 @@ public abstract class TrackerMessage {
 
 	}
 
-
 	/**
 	 * Base interface for connection request messages.
 	 *
@@ -123,13 +118,12 @@ public abstract class TrackerMessage {
 
 	};
 
-
 	/**
 	 * Base interface for connection response messages.
 	 *
 	 * <p>
-	 * This interface must be implemented by all subtypes of connection
-	 * response messages for the various tracker protocols.
+	 * This interface must be implemented by all subtypes of connection response
+	 * messages for the various tracker protocols.
 	 * </p>
 	 *
 	 * @author mpetazzoni
@@ -137,7 +131,6 @@ public abstract class TrackerMessage {
 	public interface ConnectionResponseMessage {
 
 	};
-
 
 	/**
 	 * Base interface for announce request messages.
@@ -158,26 +151,26 @@ public abstract class TrackerMessage {
 		 *
 		 * <p>
 		 * When the client starts exchanging on a torrent, it must contact the
-		 * torrent's tracker with a 'started' announce request, which notifies the
-		 * tracker this client now exchanges on this torrent (and thus allows the
-		 * tracker to report the existence of this peer to other clients).
+		 * torrent's tracker with a 'started' announce request, which notifies
+		 * the tracker this client now exchanges on this torrent (and thus
+		 * allows the tracker to report the existence of this peer to other
+		 * clients).
 		 * </p>
 		 *
 		 * <p>
-		 * When the client stops exchanging, or when its download completes, it must
-		 * also send a specific announce request. Otherwise, the client must send an
-		 * eventless (NONE), periodic announce request to the tracker at an
-		 * interval specified by the tracker itself, allowing the tracker to
-		 * refresh this peer's status and acknowledge that it is still there.
+		 * When the client stops exchanging, or when its download completes, it
+		 * must also send a specific announce request. Otherwise, the client
+		 * must send an eventless (NONE), periodic announce request to the
+		 * tracker at an interval specified by the tracker itself, allowing the
+		 * tracker to refresh this peer's status and acknowledge that it is
+		 * still there.
 		 * </p>
 		 */
 		public enum RequestEvent {
-			NONE(0),
-			COMPLETED(1),
-			STARTED(2),
-			STOPPED(3);
+			NONE(0), COMPLETED(1), STARTED(2), STOPPED(3);
 
 			private final int id;
+
 			RequestEvent(int id) {
 				this.id = id;
 			}
@@ -210,21 +203,31 @@ public abstract class TrackerMessage {
 		};
 
 		public byte[] getInfoHash();
+
 		public String getHexInfoHash();
+
 		public byte[] getPeerId();
+
 		public String getHexPeerId();
+
 		public int getPort();
+
 		public long getUploaded();
+
 		public long getDownloaded();
+
 		public long getLeft();
+
 		public boolean getCompact();
+
 		public boolean getNoPeerIds();
+
 		public RequestEvent getEvent();
 
 		public String getIp();
+
 		public int getNumWant();
 	};
-
 
 	/**
 	 * Base interface for announce response messages.
@@ -239,11 +242,13 @@ public abstract class TrackerMessage {
 	public interface AnnounceResponseMessage {
 
 		public int getInterval();
+
 		public int getComplete();
+
 		public int getIncomplete();
+
 		public List<Peer> getPeers();
 	};
-
 
 	/**
 	 * Base interface for tracker error messages.
@@ -262,17 +267,17 @@ public abstract class TrackerMessage {
 		 *
 		 * <p>
 		 * These errors are reported by the tracker to a client when expected
-		 * parameters or conditions are not present while processing an
-		 * announce request from a BitTorrent client.
+		 * parameters or conditions are not present while processing an announce
+		 * request from a BitTorrent client.
 		 * </p>
 		 */
 		public enum FailureReason {
-			UNKNOWN_TORRENT("The requested torrent does not exist on this tracker"),
-			MISSING_HASH("Missing info hash"),
-			MISSING_PEER_ID("Missing peer ID"),
-			MISSING_PORT("Missing port"),
-			INVALID_EVENT("Unexpected event for peer state"),
-			NOT_IMPLEMENTED("Feature not implemented");
+			UNKNOWN_TORRENT(
+					"The requested torrent does not exist on this tracker"), MISSING_HASH(
+					"Missing info hash"), MISSING_PEER_ID("Missing peer ID"), MISSING_PORT(
+					"Missing port"), INVALID_EVENT(
+					"Unexpected event for peer state"), NOT_IMPLEMENTED(
+					"Feature not implemented");
 
 			private String message;
 

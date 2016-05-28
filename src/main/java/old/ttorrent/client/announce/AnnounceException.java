@@ -15,7 +15,6 @@
  */
 package old.ttorrent.client.announce;
 
-
 /**
  * Exception thrown when an announce request failed.
  *

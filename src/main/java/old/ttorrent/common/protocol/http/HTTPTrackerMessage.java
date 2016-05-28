@@ -23,7 +23,6 @@ import old.ttorrent.bcodec.BDecoder;
 import old.ttorrent.bcodec.BEValue;
 import old.ttorrent.common.protocol.TrackerMessage;
 
-
 /**
  * Base class for HTTP tracker messages.
  *
@@ -35,12 +34,12 @@ public abstract class HTTPTrackerMessage extends TrackerMessage {
 		super(type, data);
 	}
 
-	public static HTTPTrackerMessage parse(ByteBuffer data)
-		throws IOException, MessageValidationException {
+	public static HTTPTrackerMessage parse(ByteBuffer data) throws IOException,
+			MessageValidationException {
 		BEValue decoded = BDecoder.bdecode(data);
 		if (decoded == null) {
 			throw new MessageValidationException(
-				"Could not decode tracker message (not B-encoded?)!");
+					"Could not decode tracker message (not B-encoded?)!");
 		}
 
 		Map<String, BEValue> params = decoded.getMap();

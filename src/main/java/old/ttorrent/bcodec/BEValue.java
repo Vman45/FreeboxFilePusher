@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 /**
  * A type-agnostic container for B-encoded values.
  *
@@ -30,8 +29,8 @@ import java.util.Map;
 public class BEValue {
 
 	/**
-	 * The B-encoded value can be a byte array, a Number, a List or a Map.
-	 * Lists and Maps contains BEValues too.
+	 * The B-encoded value can be a byte array, a Number, a List or a Map. Lists
+	 * and Maps contains BEValues too.
 	 */
 	private final Object value;
 
@@ -44,7 +43,7 @@ public class BEValue {
 	}
 
 	public BEValue(String value, String enc)
-		throws UnsupportedEncodingException {
+			throws UnsupportedEncodingException {
 		this.value = value.getBytes(enc);
 	}
 
@@ -74,7 +73,9 @@ public class BEValue {
 
 	/**
 	 * Returns this BEValue as a String, interpreted as UTF-8.
-	 * @throws InvalidBEncodingException If the value is not a byte[].
+	 * 
+	 * @throws InvalidBEncodingException
+	 *             If the value is not a byte[].
 	 */
 	public String getString() throws InvalidBEncodingException {
 		return this.getString("UTF-8");
@@ -84,9 +85,11 @@ public class BEValue {
 	 * Returns this BEValue as a String, interpreted with the specified
 	 * encoding.
 	 *
-	 * @param encoding The encoding to interpret the bytes as when converting
-	 * them into a {@link String}.
-	 * @throws InvalidBEncodingException If the value is not a byte[].
+	 * @param encoding
+	 *            The encoding to interpret the bytes as when converting them
+	 *            into a {@link String}.
+	 * @throws InvalidBEncodingException
+	 *             If the value is not a byte[].
 	 */
 	public String getString(String encoding) throws InvalidBEncodingException {
 		try {
@@ -101,11 +104,12 @@ public class BEValue {
 	/**
 	 * Returns this BEValue as a byte[].
 	 *
-	 * @throws InvalidBEncodingException If the value is not a byte[].
+	 * @throws InvalidBEncodingException
+	 *             If the value is not a byte[].
 	 */
 	public byte[] getBytes() throws InvalidBEncodingException {
 		try {
-			return (byte[])this.value;
+			return (byte[]) this.value;
 		} catch (ClassCastException cce) {
 			throw new InvalidBEncodingException(cce.toString());
 		}
@@ -114,11 +118,12 @@ public class BEValue {
 	/**
 	 * Returns this BEValue as a Number.
 	 *
-	 * @throws InvalidBEncodingException  If the value is not a {@link Number}.
+	 * @throws InvalidBEncodingException
+	 *             If the value is not a {@link Number}.
 	 */
 	public Number getNumber() throws InvalidBEncodingException {
 		try {
-			return (Number)this.value;
+			return (Number) this.value;
 		} catch (ClassCastException cce) {
 			throw new InvalidBEncodingException(cce.toString());
 		}
@@ -127,7 +132,8 @@ public class BEValue {
 	/**
 	 * Returns this BEValue as short.
 	 *
-	 * @throws InvalidBEncodingException If the value is not a {@link Number}.
+	 * @throws InvalidBEncodingException
+	 *             If the value is not a {@link Number}.
 	 */
 	public short getShort() throws InvalidBEncodingException {
 		return this.getNumber().shortValue();
@@ -136,7 +142,8 @@ public class BEValue {
 	/**
 	 * Returns this BEValue as int.
 	 *
-	 * @throws InvalidBEncodingException If the value is not a {@link Number}.
+	 * @throws InvalidBEncodingException
+	 *             If the value is not a {@link Number}.
 	 */
 	public int getInt() throws InvalidBEncodingException {
 		return this.getNumber().intValue();
@@ -145,7 +152,8 @@ public class BEValue {
 	/**
 	 * Returns this BEValue as long.
 	 *
-	 * @throws InvalidBEncodingException If the value is not a {@link Number}.
+	 * @throws InvalidBEncodingException
+	 *             If the value is not a {@link Number}.
 	 */
 	public long getLong() throws InvalidBEncodingException {
 		return this.getNumber().longValue();
@@ -154,13 +162,13 @@ public class BEValue {
 	/**
 	 * Returns this BEValue as a List of BEValues.
 	 *
-	 * @throws InvalidBEncodingException If the value is not an
-	 * {@link ArrayList}.
+	 * @throws InvalidBEncodingException
+	 *             If the value is not an {@link ArrayList}.
 	 */
 	@SuppressWarnings("unchecked")
 	public List<BEValue> getList() throws InvalidBEncodingException {
 		if (this.value instanceof ArrayList) {
-			return (ArrayList<BEValue>)this.value;
+			return (ArrayList<BEValue>) this.value;
 		} else {
 			throw new InvalidBEncodingException("Excepted List<BEvalue> !");
 		}
@@ -169,14 +177,16 @@ public class BEValue {
 	/**
 	 * Returns this BEValue as a Map of String keys and BEValue values.
 	 *
-	 * @throws InvalidBEncodingException If the value is not a {@link HashMap}.
+	 * @throws InvalidBEncodingException
+	 *             If the value is not a {@link HashMap}.
 	 */
 	@SuppressWarnings("unchecked")
 	public Map<String, BEValue> getMap() throws InvalidBEncodingException {
 		if (this.value instanceof HashMap) {
-			return (Map<String, BEValue>)this.value;
+			return (Map<String, BEValue>) this.value;
 		} else {
-			throw new InvalidBEncodingException("Expected Map<String, BEValue> !");
+			throw new InvalidBEncodingException(
+					"Expected Map<String, BEValue> !");
 		}
 	}
 }

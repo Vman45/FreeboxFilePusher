@@ -25,7 +25,6 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * Single-file torrent byte data storage.
  *
@@ -39,8 +38,8 @@ import org.slf4j.LoggerFactory;
  */
 public class FileStorage implements TorrentByteStorage {
 
-	private static final Logger logger =
-		LoggerFactory.getLogger(FileStorage.class);
+	private static final Logger logger = LoggerFactory
+			.getLogger(FileStorage.class);
 
 	private final File target;
 	private final File partial;
@@ -55,26 +54,25 @@ public class FileStorage implements TorrentByteStorage {
 		this(file, 0, size);
 	}
 
-	public FileStorage(File file, long offset, long size)
-		throws IOException {
+	public FileStorage(File file, long offset, long size) throws IOException {
 		this.target = file;
 		this.offset = offset;
 		this.size = size;
 
-		this.partial = new File(this.target.getAbsolutePath() +
-			TorrentByteStorage.PARTIAL_FILE_NAME_SUFFIX);
+		this.partial = new File(this.target.getAbsolutePath()
+				+ TorrentByteStorage.PARTIAL_FILE_NAME_SUFFIX);
 
 		if (this.partial.exists()) {
 			logger.debug("Partial download found at {}. Continuing...",
-				this.partial.getAbsolutePath());
+					this.partial.getAbsolutePath());
 			this.current = this.partial;
 		} else if (!this.target.exists()) {
 			logger.debug("Downloading new file to {}...",
-				this.partial.getAbsolutePath());
+					this.partial.getAbsolutePath());
 			this.current = this.partial;
 		} else {
 			logger.debug("Using existing file {}.",
-				this.target.getAbsolutePath());
+					this.target.getAbsolutePath());
 			this.current = this.target;
 		}
 
@@ -85,13 +83,10 @@ public class FileStorage implements TorrentByteStorage {
 		this.raf.setLength(this.size);
 
 		this.channel = raf.getChannel();
-		logger.info("Initialized byte storage file at {} " +
-			"({}+{} byte(s)).",
-			new Object[] {
-				this.current.getAbsolutePath(),
-				this.offset,
-				this.size,
-			});
+		logger.info(
+				"Initialized byte storage file at {} " + "({}+{} byte(s)).",
+				new Object[] { this.current.getAbsolutePath(), this.offset,
+						this.size, });
 	}
 
 	protected long offset() {
@@ -132,19 +127,21 @@ public class FileStorage implements TorrentByteStorage {
 
 	@Override
 	public synchronized void close() throws IOException {
-		logger.debug("Closing file channel to " + this.current.getName() + "...");
+		logger.debug("Closing file channel to " + this.current.getName()
+				+ "...");
 		if (this.channel.isOpen()) {
 			this.channel.force(true);
 		}
 		this.raf.close();
 	}
 
-	/** Move the partial file to its final location.
+	/**
+	 * Move the partial file to its final location.
 	 */
 	@Override
 	public synchronized void finish() throws IOException {
-		logger.debug("Closing file channel to " + this.current.getName() +
-			" (download complete).");
+		logger.debug("Closing file channel to " + this.current.getName()
+				+ " (download complete).");
 		if (this.channel.isOpen()) {
 			this.channel.force(true);
 		}
@@ -168,8 +165,7 @@ public class FileStorage implements TorrentByteStorage {
 
 		FileUtils.deleteQuietly(this.partial);
 		logger.info("Moved torrent data from {} to {}.",
-			this.partial.getName(),
-			this.target.getName());
+				this.partial.getName(), this.target.getName());
 	}
 
 	@Override

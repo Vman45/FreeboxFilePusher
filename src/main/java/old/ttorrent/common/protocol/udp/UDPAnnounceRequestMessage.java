@@ -23,15 +23,14 @@ import java.nio.ByteBuffer;
 import old.ttorrent.common.Torrent;
 import old.ttorrent.common.protocol.TrackerMessage;
 
-
 /**
  * The announce request message for the UDP tracker protocol.
  *
  * @author mpetazzoni
  */
-public class UDPAnnounceRequestMessage
-	extends UDPTrackerMessage.UDPTrackerRequestMessage
-	implements TrackerMessage.AnnounceRequestMessage {
+public class UDPAnnounceRequestMessage extends
+		UDPTrackerMessage.UDPTrackerRequestMessage implements
+		TrackerMessage.AnnounceRequestMessage {
 
 	private static final int UDP_ANNOUNCE_REQUEST_MESSAGE_SIZE = 98;
 
@@ -50,9 +49,9 @@ public class UDPAnnounceRequestMessage
 	private final short port;
 
 	private UDPAnnounceRequestMessage(ByteBuffer data, long connectionId,
-		int transactionId, byte[] infoHash, byte[] peerId, long downloaded,
-		long uploaded, long left, RequestEvent event, InetAddress ip,
-		int key, int numWant, short port) {
+			int transactionId, byte[] infoHash, byte[] peerId, long downloaded,
+			long uploaded, long left, RequestEvent event, InetAddress ip,
+			int key, int numWant, short port) {
 		super(Type.ANNOUNCE_REQUEST, data);
 		this.connectionId = connectionId;
 		this.transactionId = transactionId;
@@ -152,17 +151,17 @@ public class UDPAnnounceRequestMessage
 	}
 
 	public static UDPAnnounceRequestMessage parse(ByteBuffer data)
-		throws MessageValidationException {
+			throws MessageValidationException {
 		if (data.remaining() != UDP_ANNOUNCE_REQUEST_MESSAGE_SIZE) {
 			throw new MessageValidationException(
-				"Invalid announce request message size!");
+					"Invalid announce request message size!");
 		}
 
 		long connectionId = data.getLong();
 
 		if (data.getInt() != Type.ANNOUNCE_REQUEST.getId()) {
 			throw new MessageValidationException(
-				"Invalid action code for announce request!");
+					"Invalid action code for announce request!");
 		}
 
 		int transactionId = data.getInt();
@@ -177,7 +176,7 @@ public class UDPAnnounceRequestMessage
 		RequestEvent event = RequestEvent.getById(data.getInt());
 		if (event == null) {
 			throw new MessageValidationException(
-				"Invalid event type in announce request!");
+					"Invalid event type in announce request!");
 		}
 
 		InetAddress ip = null;
@@ -187,42 +186,33 @@ public class UDPAnnounceRequestMessage
 			ip = InetAddress.getByAddress(ipBytes);
 		} catch (UnknownHostException uhe) {
 			throw new MessageValidationException(
-				"Invalid IP address in announce request!");
+					"Invalid IP address in announce request!");
 		}
 
 		int key = data.getInt();
 		int numWant = data.getInt();
 		short port = data.getShort();
 
-		return new UDPAnnounceRequestMessage(data,
-			connectionId,
-			transactionId,
-			infoHash,
-			peerId,
-			downloaded,
-			uploaded,
-			left,
-			event,
-			ip,
-			key,
-			numWant,
-			port);
+		return new UDPAnnounceRequestMessage(data, connectionId, transactionId,
+				infoHash, peerId, downloaded, uploaded, left, event, ip, key,
+				numWant, port);
 	}
 
 	public static UDPAnnounceRequestMessage craft(long connectionId,
-		int transactionId, byte[] infoHash, byte[] peerId, long downloaded,
-		long uploaded, long left, RequestEvent event, InetAddress ip,
-		int key, int numWant, int port) {
+			int transactionId, byte[] infoHash, byte[] peerId, long downloaded,
+			long uploaded, long left, RequestEvent event, InetAddress ip,
+			int key, int numWant, int port) {
 		if (infoHash.length != 20 || peerId.length != 20) {
 			throw new IllegalArgumentException();
 		}
 
-		if (! (ip instanceof Inet4Address)) {
-			throw new IllegalArgumentException("Only IPv4 addresses are " +
-				"supported by the UDP tracer protocol!");
+		if (!(ip instanceof Inet4Address)) {
+			throw new IllegalArgumentException("Only IPv4 addresses are "
+					+ "supported by the UDP tracer protocol!");
 		}
 
-		ByteBuffer data = ByteBuffer.allocate(UDP_ANNOUNCE_REQUEST_MESSAGE_SIZE);
+		ByteBuffer data = ByteBuffer
+				.allocate(UDP_ANNOUNCE_REQUEST_MESSAGE_SIZE);
 		data.putLong(connectionId);
 		data.putInt(Type.ANNOUNCE_REQUEST.getId());
 		data.putInt(transactionId);
@@ -235,19 +225,9 @@ public class UDPAnnounceRequestMessage
 		data.put(ip.getAddress());
 		data.putInt(key);
 		data.putInt(numWant);
-		data.putShort((short)port);
-		return new UDPAnnounceRequestMessage(data,
-			connectionId,
-			transactionId,
-			infoHash,
-			peerId,
-			downloaded,
-			uploaded,
-			left,
-			event,
-			ip,
-			key,
-			numWant,
-			(short)port);
+		data.putShort((short) port);
+		return new UDPAnnounceRequestMessage(data, connectionId, transactionId,
+				infoHash, peerId, downloaded, uploaded, left, event, ip, key,
+				numWant, (short) port);
 	}
 }

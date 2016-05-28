@@ -24,12 +24,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import old.ttorrent.client.SharedTorrent;
 import old.ttorrent.common.Peer;
 import old.ttorrent.common.protocol.TrackerMessage.AnnounceRequestMessage;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * BitTorrent announce sub-system.
@@ -49,13 +49,15 @@ import old.ttorrent.common.protocol.TrackerMessage.AnnounceRequestMessage;
  */
 public class Announce implements Runnable {
 
-	protected static final Logger logger =
-		LoggerFactory.getLogger(Announce.class);
+	protected static final Logger logger = LoggerFactory
+			.getLogger(Announce.class);
 
 	private final Peer peer;
 
-	/** The tiers of tracker clients matching the tracker URIs defined in the
-	 * torrent. */
+	/**
+	 * The tiers of tracker clients matching the tracker URIs defined in the
+	 * torrent.
+	 */
 	private final List<List<TrackerClient>> clients;
 	private final Set<TrackerClient> allClients;
 
@@ -73,8 +75,10 @@ public class Announce implements Runnable {
 	/**
 	 * Initialize the base announce class members for the announcer.
 	 *
-	 * @param torrent The torrent we're announcing about.
-	 * @param peer Our peer specification.
+	 * @param torrent
+	 *            The torrent we're announcing about.
+	 * @param peer
+	 *            Our peer specification.
 	 */
 	public Announce(SharedTorrent torrent, Peer peer) {
 		this.peer = peer;
@@ -82,24 +86,22 @@ public class Announce implements Runnable {
 		this.allClients = new HashSet<TrackerClient>();
 
 		/**
-		 * Build the tiered structure of tracker clients mapping to the
-		 * trackers of the torrent.
+		 * Build the tiered structure of tracker clients mapping to the trackers
+		 * of the torrent.
 		 */
 		for (List<URI> tier : torrent.getAnnounceList()) {
 			ArrayList<TrackerClient> tierClients = new ArrayList<TrackerClient>();
 			for (URI tracker : tier) {
 				try {
 					TrackerClient client = this.createTrackerClient(torrent,
-						peer, tracker);
+							peer, tracker);
 
 					tierClients.add(client);
 					this.allClients.add(client);
 				} catch (Exception e) {
-					logger.warn("Will not announce on {}: {}!",
-						tracker,
-						e.getMessage() != null
-							? e.getMessage()
-							: e.getClass().getSimpleName());
+					logger.warn("Will not announce on {}: {}!", tracker, e
+							.getMessage() != null ? e.getMessage() : e
+							.getClass().getSimpleName());
 				}
 			}
 
@@ -116,13 +118,14 @@ public class Announce implements Runnable {
 		this.currentClient = 0;
 
 		logger.info("Initialized announce sub-system with {} trackers on {}.",
-			new Object[] { torrent.getTrackerCount(), torrent });
+				new Object[] { torrent.getTrackerCount(), torrent });
 	}
 
 	/**
 	 * Register a new announce response listener.
 	 *
-	 * @param listener The listener to register on this announcer events.
+	 * @param listener
+	 *            The listener to register on this announcer events.
 	 */
 	public void register(AnnounceResponseListener listener) {
 		for (TrackerClient client : this.allClients) {
@@ -137,10 +140,11 @@ public class Announce implements Runnable {
 		this.stop = false;
 		this.forceStop = false;
 
-		if (this.clients.size() > 0 && (this.thread == null || !this.thread.isAlive())) {
+		if (this.clients.size() > 0
+				&& (this.thread == null || !this.thread.isAlive())) {
 			this.thread = new Thread(this);
-			this.thread.setName("bt-announce(" +
-				this.peer.getShortHexPeerId() + ")");
+			this.thread.setName("bt-announce(" + this.peer.getShortHexPeerId()
+					+ ")");
 			this.thread.start();
 		}
 	}
@@ -159,7 +163,7 @@ public class Announce implements Runnable {
 		}
 
 		logger.info("Setting announce interval to {}s per tracker request.",
-			interval);
+				interval);
 		this.interval = interval;
 	}
 
@@ -214,8 +218,7 @@ public class Announce implements Runnable {
 		// in real-time by the tracker's responses to our announce requests.
 		this.interval = 5;
 
-		AnnounceRequestMessage.RequestEvent event =
-			AnnounceRequestMessage.RequestEvent.STARTED;
+		AnnounceRequestMessage.RequestEvent event = AnnounceRequestMessage.RequestEvent.STARTED;
 
 		while (!this.stop) {
 			try {
@@ -228,7 +231,9 @@ public class Announce implements Runnable {
 				try {
 					this.moveToNextTrackerClient();
 				} catch (AnnounceException e) {
-					logger.error("Unable to move to the next tracker client: {}", e.getMessage());
+					logger.error(
+							"Unable to move to the next tracker client: {}",
+							e.getMessage());
 				}
 			}
 
@@ -262,14 +267,19 @@ public class Announce implements Runnable {
 	/**
 	 * Create a {@link TrackerClient} annoucing to the given tracker address.
 	 *
-	 * @param torrent The torrent the tracker client will be announcing for.
-	 * @param peer The peer the tracker client will announce on behalf of.
-	 * @param tracker The tracker address as a {@link URI}.
-	 * @throws UnknownHostException If the tracker address is invalid.
-	 * @throws UnknownServiceException If the tracker protocol is not supported.
+	 * @param torrent
+	 *            The torrent the tracker client will be announcing for.
+	 * @param peer
+	 *            The peer the tracker client will announce on behalf of.
+	 * @param tracker
+	 *            The tracker address as a {@link URI}.
+	 * @throws UnknownHostException
+	 *             If the tracker address is invalid.
+	 * @throws UnknownServiceException
+	 *             If the tracker protocol is not supported.
 	 */
 	private TrackerClient createTrackerClient(SharedTorrent torrent, Peer peer,
-		URI tracker) throws UnknownHostException, UnknownServiceException {
+			URI tracker) throws UnknownHostException, UnknownServiceException {
 		String scheme = tracker.getScheme();
 
 		if ("http".equals(scheme) || "https".equals(scheme)) {
@@ -278,24 +288,25 @@ public class Announce implements Runnable {
 			return new UDPTrackerClient(torrent, peer, tracker);
 		}
 
-		throw new UnknownServiceException(
-			"Unsupported announce scheme: " + scheme + "!");
+		throw new UnknownServiceException("Unsupported announce scheme: "
+				+ scheme + "!");
 	}
 
 	/**
 	 * Returns the current tracker client used for announces.
-	 * @throws AnnounceException When the current announce tier isn't defined
-	 *	in the torrent.
+	 * 
+	 * @throws AnnounceException
+	 *             When the current announce tier isn't defined in the torrent.
 	 */
 	public TrackerClient getCurrentTrackerClient() throws AnnounceException {
-		if ((this.currentTier >= this.clients.size()) ||
-			(this.currentClient >= this.clients.get(this.currentTier).size())) {
-			throw new AnnounceException("Current tier or client isn't available");
+		if ((this.currentTier >= this.clients.size())
+				|| (this.currentClient >= this.clients.get(this.currentTier)
+						.size())) {
+			throw new AnnounceException(
+					"Current tier or client isn't available");
 		}
 
-		return this.clients
-			.get(this.currentTier)
-			.get(this.currentClient);
+		return this.clients.get(this.currentTier).get(this.currentClient);
 	}
 
 	/**
@@ -314,16 +325,13 @@ public class Announce implements Runnable {
 	 * @throws AnnounceException
 	 */
 	private void promoteCurrentTrackerClient() throws AnnounceException {
-		logger.trace("Promoting current tracker client for {} " +
-			"(tier {}, position {} -> 0).",
-			new Object[] {
+		logger.trace("Promoting current tracker client for {} "
+				+ "(tier {}, position {} -> 0).", new Object[] {
 				this.getCurrentTrackerClient().getTrackerURI(),
-				this.currentTier,
-				this.currentClient
-			});
+				this.currentTier, this.currentClient });
 
 		Collections.swap(this.clients.get(this.currentTier),
-			this.currentClient, 0);
+				this.currentClient, 0);
 		this.currentClient = 0;
 	}
 
@@ -356,26 +364,23 @@ public class Announce implements Runnable {
 			}
 		}
 
-		if (tier != this.currentTier ||
-			client != this.currentClient) {
+		if (tier != this.currentTier || client != this.currentClient) {
 			this.currentTier = tier;
 			this.currentClient = client;
 
-			logger.debug("Switched to tracker client for {} " +
-				"(tier {}, position {}).",
-				new Object[] {
+			logger.debug("Switched to tracker client for {} "
+					+ "(tier {}, position {}).", new Object[] {
 					this.getCurrentTrackerClient().getTrackerURI(),
-					this.currentTier,
-					this.currentClient
-				});
+					this.currentTier, this.currentClient });
 		}
 	}
 
 	/**
 	 * Stop the announce thread.
 	 *
-	 * @param hard Whether to force stop the announce thread or not, i.e. not
-	 * send the final 'stopped' announce request or not.
+	 * @param hard
+	 *            Whether to force stop the announce thread or not, i.e. not
+	 *            send the final 'stopped' announce request or not.
 	 */
 	private void stop(boolean hard) {
 		this.forceStop = hard;

@@ -31,10 +31,11 @@ public abstract class UDPTrackerMessage extends TrackerMessage {
 	}
 
 	public abstract int getActionId();
+
 	public abstract int getTransactionId();
 
-	public static abstract class UDPTrackerRequestMessage
-		extends UDPTrackerMessage {
+	public static abstract class UDPTrackerRequestMessage extends
+			UDPTrackerMessage {
 
 		private static final int UDP_MIN_REQUEST_PACKET_SIZE = 16;
 
@@ -43,14 +44,14 @@ public abstract class UDPTrackerMessage extends TrackerMessage {
 		}
 
 		public static UDPTrackerRequestMessage parse(ByteBuffer data)
-			throws MessageValidationException {
+				throws MessageValidationException {
 			if (data.remaining() < UDP_MIN_REQUEST_PACKET_SIZE) {
 				throw new MessageValidationException("Invalid packet size!");
 			}
 
 			/**
-			 * UDP request packets always start with the connection ID (8 bytes),
-			 * followed by the action (4 bytes). Extract the action code
+			 * UDP request packets always start with the connection ID (8
+			 * bytes), followed by the action (4 bytes). Extract the action code
 			 * accordingly.
 			 */
 			data.mark();
@@ -64,13 +65,13 @@ public abstract class UDPTrackerMessage extends TrackerMessage {
 				return UDPAnnounceRequestMessage.parse(data);
 			}
 
-			throw new MessageValidationException("Unknown UDP tracker " +
-				"request message!");
+			throw new MessageValidationException("Unknown UDP tracker "
+					+ "request message!");
 		}
 	};
 
-	public static abstract class UDPTrackerResponseMessage
-		extends UDPTrackerMessage {
+	public static abstract class UDPTrackerResponseMessage extends
+			UDPTrackerMessage {
 
 		private static final int UDP_MIN_RESPONSE_PACKET_SIZE = 8;
 
@@ -79,7 +80,7 @@ public abstract class UDPTrackerMessage extends TrackerMessage {
 		}
 
 		public static UDPTrackerResponseMessage parse(ByteBuffer data)
-			throws MessageValidationException {
+				throws MessageValidationException {
 			if (data.remaining() < UDP_MIN_RESPONSE_PACKET_SIZE) {
 				throw new MessageValidationException("Invalid packet size!");
 			}
@@ -100,8 +101,8 @@ public abstract class UDPTrackerMessage extends TrackerMessage {
 				return UDPTrackerErrorMessage.parse(data);
 			}
 
-			throw new MessageValidationException("Unknown UDP tracker " +
-				"response message!");
+			throw new MessageValidationException("Unknown UDP tracker "
+					+ "response message!");
 		}
 	};
 }

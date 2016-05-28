@@ -5,9 +5,12 @@ package eu.gaki.ffp.service;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -18,114 +21,159 @@ import org.slf4j.LoggerFactory;
  */
 public class ConfigService {
 
-    /** The Constant LOGGER. */
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigService.class);
+	/** The Constant LOGGER. */
+	private static final Logger LOGGER = LoggerFactory
+			.getLogger(ConfigService.class);
 
-    /** The configuration. */
-    private Properties configuration;
+	/** The configuration. */
+	private Properties configuration;
 
-    /**
-     * Instantiates a new config service.
-     *
-     * @param configFile
-     *            the config file
-     * @throws IOException
-     *             Signals that an I/O exception has occurred.
-     */
-    public ConfigService(final Path configFile) throws IOException {
-	loadConfigurationFile(configFile);
-    }
-
-    /**
-     * Load configuration file.
-     *
-     * @param fileLocation
-     *            the file location
-     * @throws IOException
-     *             Signals that an I/O exception has occurred.
-     */
-    private void loadConfigurationFile(final Path fileLocation) throws IOException {
-	configuration = new Properties();
-	Path propertiesfileLocation;
-	if (fileLocation != null) {
-	    propertiesfileLocation = fileLocation;
-	} else {
-	    propertiesfileLocation = Paths.get("freeboxFilePusher.properties");
+	/**
+	 * Instantiates a new config service.
+	 *
+	 * @param configFile
+	 *            the config file
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
+	public ConfigService(final Path configFile) throws IOException {
+		loadConfigurationFile(configFile);
 	}
 
-	try (InputStream configurationInputStream = getConfigurationInputStream(propertiesfileLocation)) {
-	    if (configurationInputStream != null) {
-		configuration.load(configurationInputStream);
-	    }
-	} catch (final IOException e) {
-	    LOGGER.error("Cannot load configuration file: {}", e.getMessage(), e);
-	    throw e;
+	/**
+	 * Load configuration file.
+	 *
+	 * @param fileLocation
+	 *            the file location
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
+	private void loadConfigurationFile(final Path fileLocation)
+			throws IOException {
+		configuration = new Properties();
+		Path propertiesfileLocation;
+		if (fileLocation != null) {
+			propertiesfileLocation = fileLocation;
+		} else {
+			propertiesfileLocation = Paths.get("freeboxFilePusher.properties");
+		}
+
+		try (InputStream configurationInputStream = getConfigurationInputStream(propertiesfileLocation)) {
+			if (configurationInputStream != null) {
+				configuration.load(configurationInputStream);
+			}
+		} catch (final IOException e) {
+			LOGGER.error("Cannot load configuration file: {}", e.getMessage(),
+					e);
+			throw e;
+		}
 	}
-    }
 
-    /**
-     * Gets the configuration input stream.
-     *
-     * @param propertiesfileLocation
-     *            the propertiesfile location
-     * @return the configuration input stream
-     * @throws IOException
-     *             Signals that an I/O exception has occurred.
-     */
-    private InputStream getConfigurationInputStream(final Path propertiesfileLocation) throws IOException {
-	InputStream configurationInputStream = null;
-	if (Files.isRegularFile(propertiesfileLocation)) {
-	    // Try to load from disk
-	    configurationInputStream = Files.newInputStream(propertiesfileLocation);
-	} else if (getClass().getResourceAsStream(propertiesfileLocation.toString()) != null) {
-	    // Try to load from classpath
-	    configurationInputStream = getClass().getResourceAsStream(propertiesfileLocation.toString());
+	/**
+	 * Gets the configuration input stream.
+	 *
+	 * @param propertiesfileLocation
+	 *            the propertiesfile location
+	 * @return the configuration input stream
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
+	private InputStream getConfigurationInputStream(
+			final Path propertiesfileLocation) throws IOException {
+		InputStream configurationInputStream = null;
+		if (Files.isRegularFile(propertiesfileLocation)) {
+			// Try to load from disk
+			configurationInputStream = Files
+					.newInputStream(propertiesfileLocation);
+		} else if (getClass().getResourceAsStream(
+				propertiesfileLocation.toString()) != null) {
+			// Try to load from classpath
+			configurationInputStream = getClass().getResourceAsStream(
+					propertiesfileLocation.toString());
+		}
+		return configurationInputStream;
 	}
-	return configurationInputStream;
-    }
 
-    /**
-     * Gets the rss location.
-     *
-     * @return the rss location
-     */
-    public String getRssLocation() {
-	return configuration.getProperty("rss.location", "rss.xml");
-    }
+	/**
+	 * Gets the rss location.
+	 *
+	 * @return the rss location
+	 */
+	public Path getRssLocation() {
+		String rssLocation = configuration.getProperty("rss.location",
+				"rss.xml");
+		return FileSystems.getDefault().getPath(rssLocation);
+	}
 
-    /**
-     * Gets the rss url.
-     *
-     * @return the rss url
-     */
-    public String getRssUrl() {
-	return configuration.getProperty("rss.url", "http://unknown/${file.name}");
-    }
+	/**
+	 * Gets the data file location.
+	 *
+	 * @return the data file location
+	 */
+	public Path getDataFileLocation() {
+		String dataFileLocation = configuration.getProperty(
+				"ffp.data.file.location", "ffp-data.xml");
+		return FileSystems.getDefault().getPath(dataFileLocation);
+	}
 
-    /**
-     * Checks if is enable bittorent.
-     *
-     * @return the boolean
-     */
-    public Boolean isEnableBittorent() {
-	return Boolean.valueOf(configuration.getProperty("ffp.enable.bittorrent", "false"));
-    }
+	/**
+	 * Gets the rss url.
+	 *
+	 * @return the rss url
+	 */
+	public String getRssUrl() {
+		return configuration.getProperty("rss.url",
+				"http://unknown/${file.name}");
+	}
 
-    /**
-     * Checks if is enable http.
-     *
-     * @return the boolean
-     */
-    public Boolean isEnableHttp() {
-	return Boolean.valueOf(configuration.getProperty("ffp.enable.http", "true"));
-    }
+	/**
+	 * Checks if is enable bittorent.
+	 *
+	 * @return the boolean
+	 */
+	public Boolean isEnableBittorent() {
+		return Boolean.valueOf(configuration.getProperty(
+				"ffp.enable.bittorrent", "false"));
+	}
 
-    /**
-     * Gets the repeat interval.
-     *
-     * @return the repeat interval
-     */
-    public Long getRepeatInterval() {
-	return Long.valueOf(configuration.getProperty("folder.scan.interval.seconds", "600"));
-    }
+	/**
+	 * Checks if is enable http.
+	 *
+	 * @return the boolean
+	 */
+	public Boolean isEnableHttp() {
+		return Boolean.valueOf(configuration.getProperty("ffp.enable.http",
+				"true"));
+	}
+
+	/**
+	 * Gets the repeat interval.
+	 *
+	 * @return the repeat interval
+	 */
+	public Long getRepeatInterval() {
+		return Long.valueOf(configuration.getProperty(
+				"folder.scan.interval.seconds", "600"));
+	}
+
+	/**
+	 * Gets the folder to watch.
+	 *
+	 * @return the folder to watch
+	 */
+	public List<Path> getFoldersToWatch() {
+		final List<Path> foldersToWatch = new ArrayList<>();
+		final String key = "folders.to.watch.";
+		int i = 1;
+		while (configuration.containsKey(key + i)) {
+			final String folderLocation = configuration.getProperty(key + i,
+					null);
+			if (folderLocation != null && folderLocation.trim().length() != 0) {
+				final Path folder = Paths.get(folderLocation);
+				foldersToWatch.add(folder);
+			}
+			i += 1;
+		}
+		return foldersToWatch;
+	}
 }

@@ -21,7 +21,6 @@ import java.text.ParseException;
 
 import old.ttorrent.common.Torrent;
 
-
 /**
  * Peer handshake handler.
  *
@@ -36,8 +35,7 @@ public class Handshake {
 	ByteBuffer infoHash;
 	ByteBuffer peerId;
 
-	private Handshake(ByteBuffer data, ByteBuffer infoHash,
-			ByteBuffer peerId) {
+	private Handshake(ByteBuffer data, ByteBuffer infoHash, ByteBuffer peerId) {
 		this.data = data;
 		this.data.rewind();
 
@@ -57,21 +55,21 @@ public class Handshake {
 		return this.peerId.array();
 	}
 
-	public static Handshake parse(ByteBuffer buffer)
-		throws ParseException, UnsupportedEncodingException {
+	public static Handshake parse(ByteBuffer buffer) throws ParseException,
+			UnsupportedEncodingException {
 		int pstrlen = Byte.valueOf(buffer.get()).intValue();
-		if (pstrlen < 0 ||
-				buffer.remaining() != BASE_HANDSHAKE_LENGTH + pstrlen - 1) {
-			throw new ParseException("Incorrect handshake message length " +
-				   "(pstrlen=" + pstrlen + ") !", 0);
+		if (pstrlen < 0
+				|| buffer.remaining() != BASE_HANDSHAKE_LENGTH + pstrlen - 1) {
+			throw new ParseException("Incorrect handshake message length "
+					+ "(pstrlen=" + pstrlen + ") !", 0);
 		}
 
 		// Check the protocol identification string
 		byte[] pstr = new byte[pstrlen];
 		buffer.get(pstr);
 
-		if (!Handshake.BITTORRENT_PROTOCOL_IDENTIFIER.equals(
-					new String(pstr, Torrent.BYTE_ENCODING))) {
+		if (!Handshake.BITTORRENT_PROTOCOL_IDENTIFIER.equals(new String(pstr,
+				Torrent.BYTE_ENCODING))) {
 			throw new ParseException("Invalid protocol identifier!", 1);
 		}
 
@@ -87,21 +85,19 @@ public class Handshake {
 				ByteBuffer.wrap(peerId));
 	}
 
-	public static Handshake craft(byte[] torrentInfoHash,
-			byte[] clientPeerId) {
+	public static Handshake craft(byte[] torrentInfoHash, byte[] clientPeerId) {
 		try {
-			ByteBuffer buffer = ByteBuffer.allocate(
-					Handshake.BASE_HANDSHAKE_LENGTH +
-					Handshake.BITTORRENT_PROTOCOL_IDENTIFIER.length());
+			ByteBuffer buffer = ByteBuffer
+					.allocate(Handshake.BASE_HANDSHAKE_LENGTH
+							+ Handshake.BITTORRENT_PROTOCOL_IDENTIFIER.length());
 
 			byte[] reserved = new byte[8];
 			ByteBuffer infoHash = ByteBuffer.wrap(torrentInfoHash);
 			ByteBuffer peerId = ByteBuffer.wrap(clientPeerId);
 
-			buffer.put((byte)Handshake
-					.BITTORRENT_PROTOCOL_IDENTIFIER.length());
-			buffer.put(Handshake
-					.BITTORRENT_PROTOCOL_IDENTIFIER.getBytes(Torrent.BYTE_ENCODING));
+			buffer.put((byte) Handshake.BITTORRENT_PROTOCOL_IDENTIFIER.length());
+			buffer.put(Handshake.BITTORRENT_PROTOCOL_IDENTIFIER
+					.getBytes(Torrent.BYTE_ENCODING));
 			buffer.put(reserved);
 			buffer.put(infoHash);
 			buffer.put(peerId);

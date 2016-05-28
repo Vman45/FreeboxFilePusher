@@ -15,8 +15,10 @@ import old.ttorrent.client.Piece;
  */
 public class RequestStrategyImplRarest implements RequestStrategy {
 
-	/** Randomly select the next piece to download from a peer from the
-	 * RAREST_PIECE_JITTER available from it. */
+	/**
+	 * Randomly select the next piece to download from a peer from the
+	 * RAREST_PIECE_JITTER available from it.
+	 */
 	private static final int RAREST_PIECE_JITTER = 42;
 
 	private Random random;
@@ -26,7 +28,8 @@ public class RequestStrategyImplRarest implements RequestStrategy {
 	}
 
 	@Override
-	public Piece choosePiece(SortedSet<Piece> rarest, BitSet interesting, Piece[] pieces) {
+	public Piece choosePiece(SortedSet<Piece> rarest, BitSet interesting,
+			Piece[] pieces) {
 		// Extract the RAREST_PIECE_JITTER rarest pieces from the interesting
 		// pieces of this peer.
 		ArrayList<Piece> choice = new ArrayList<Piece>(RAREST_PIECE_JITTER);
@@ -41,11 +44,10 @@ public class RequestStrategyImplRarest implements RequestStrategy {
 			}
 		}
 
-		if (choice.size() == 0) return null;
+		if (choice.size() == 0)
+			return null;
 
-		Piece chosen = choice.get(
-			this.random.nextInt(
-				Math.min(choice.size(),
+		Piece chosen = choice.get(this.random.nextInt(Math.min(choice.size(),
 				RAREST_PIECE_JITTER)));
 		return chosen;
 	}

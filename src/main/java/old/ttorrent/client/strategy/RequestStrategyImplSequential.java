@@ -14,10 +14,12 @@ import old.ttorrent.client.Piece;
 public class RequestStrategyImplSequential implements RequestStrategy {
 
 	@Override
-	public Piece choosePiece(SortedSet<Piece> rarest, BitSet interesting, Piece[] pieces) {
+	public Piece choosePiece(SortedSet<Piece> rarest, BitSet interesting,
+			Piece[] pieces) {
 
 		for (Piece p : pieces) {
-			if (interesting.get(p.getIndex())) return p;
+			if (interesting.get(p.getIndex()))
+				return p;
 		}
 		return null;
 	}

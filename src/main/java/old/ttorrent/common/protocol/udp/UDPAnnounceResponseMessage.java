@@ -30,9 +30,9 @@ import old.ttorrent.common.protocol.TrackerMessage;
  *
  * @author mpetazzoni
  */
-public class UDPAnnounceResponseMessage
-	extends UDPTrackerMessage.UDPTrackerResponseMessage
-	implements TrackerMessage.AnnounceResponseMessage {
+public class UDPAnnounceResponseMessage extends
+		UDPTrackerMessage.UDPTrackerResponseMessage implements
+		TrackerMessage.AnnounceResponseMessage {
 
 	private static final int UDP_ANNOUNCE_RESPONSE_MIN_MESSAGE_SIZE = 20;
 
@@ -44,7 +44,7 @@ public class UDPAnnounceResponseMessage
 	private final List<Peer> peers;
 
 	private UDPAnnounceResponseMessage(ByteBuffer data, int transactionId,
-		int interval, int complete, int incomplete, List<Peer> peers) {
+			int interval, int complete, int incomplete, List<Peer> peers) {
 		super(Type.ANNOUNCE_REQUEST, data);
 		this.transactionId = transactionId;
 		this.interval = interval;
@@ -84,16 +84,16 @@ public class UDPAnnounceResponseMessage
 	}
 
 	public static UDPAnnounceResponseMessage parse(ByteBuffer data)
-		throws MessageValidationException {
-		if (data.remaining() < UDP_ANNOUNCE_RESPONSE_MIN_MESSAGE_SIZE ||
-			(data.remaining() - UDP_ANNOUNCE_RESPONSE_MIN_MESSAGE_SIZE) % 6 != 0) {
+			throws MessageValidationException {
+		if (data.remaining() < UDP_ANNOUNCE_RESPONSE_MIN_MESSAGE_SIZE
+				|| (data.remaining() - UDP_ANNOUNCE_RESPONSE_MIN_MESSAGE_SIZE) % 6 != 0) {
 			throw new MessageValidationException(
-				"Invalid announce response message size!");
+					"Invalid announce response message size!");
 		}
 
 		if (data.getInt() != Type.ANNOUNCE_RESPONSE.getId()) {
 			throw new MessageValidationException(
-				"Invalid action code for announce response!");
+					"Invalid action code for announce response!");
 		}
 
 		int transactionId = data.getInt();
@@ -102,39 +102,36 @@ public class UDPAnnounceResponseMessage
 		int complete = data.getInt();
 
 		List<Peer> peers = new LinkedList<Peer>();
-		for (int i=0; i < data.remaining() / 6; i++) {
+		for (int i = 0; i < data.remaining() / 6; i++) {
 			try {
 				byte[] ipBytes = new byte[4];
 				data.get(ipBytes);
 				InetAddress ip = InetAddress.getByAddress(ipBytes);
-				int port =
-					(0xFF & (int)data.get()) << 8 |
-					(0xFF & (int)data.get());
+				int port = (0xFF & (int) data.get()) << 8
+						| (0xFF & (int) data.get());
 				peers.add(new Peer(new InetSocketAddress(ip, port)));
 			} catch (UnknownHostException uhe) {
 				throw new MessageValidationException(
-					"Invalid IP address in announce request!");
+						"Invalid IP address in announce request!");
 			}
 		}
 
-		return new UDPAnnounceResponseMessage(data,
-			transactionId,
-			interval,
-			complete,
-			incomplete,
-			peers);
+		return new UDPAnnounceResponseMessage(data, transactionId, interval,
+				complete, incomplete, peers);
 	}
 
 	public static UDPAnnounceResponseMessage craft(int transactionId,
-		int interval, int complete, int incomplete, List<Peer> peers) {
+			int interval, int complete, int incomplete, List<Peer> peers) {
 		ByteBuffer data = ByteBuffer
-			.allocate(UDP_ANNOUNCE_RESPONSE_MIN_MESSAGE_SIZE + 6*peers.size());
+				.allocate(UDP_ANNOUNCE_RESPONSE_MIN_MESSAGE_SIZE + 6
+						* peers.size());
 		data.putInt(Type.ANNOUNCE_RESPONSE.getId());
 		data.putInt(transactionId);
 		data.putInt(interval);
 
 		/**
-		 * Leechers (incomplete) are first, before seeders (complete) in the packet.
+		 * Leechers (incomplete) are first, before seeders (complete) in the
+		 * packet.
 		 */
 		data.putInt(incomplete);
 		data.putInt(complete);
@@ -146,15 +143,10 @@ public class UDPAnnounceResponseMessage
 			}
 
 			data.put(ip);
-			data.putShort((short)peer.getPort());
+			data.putShort((short) peer.getPort());
 		}
 
-		return new UDPAnnounceResponseMessage(data,
-			transactionId,
-			interval,
-			complete,
-			incomplete,
-			peers);
+		return new UDPAnnounceResponseMessage(data, transactionId, interval,
+				complete, incomplete, peers);
 	}
 }
-

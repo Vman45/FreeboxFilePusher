@@ -21,15 +21,14 @@ import java.nio.ByteBuffer;
 import old.ttorrent.common.Torrent;
 import old.ttorrent.common.protocol.TrackerMessage;
 
-
 /**
  * The error message for the UDP tracker protocol.
  *
  * @author mpetazzoni
  */
-public class UDPTrackerErrorMessage
-	extends UDPTrackerMessage.UDPTrackerResponseMessage
-	implements TrackerMessage.ErrorMessage {
+public class UDPTrackerErrorMessage extends
+		UDPTrackerMessage.UDPTrackerResponseMessage implements
+		TrackerMessage.ErrorMessage {
 
 	private static final int UDP_TRACKER_ERROR_MIN_MESSAGE_SIZE = 8;
 
@@ -38,7 +37,7 @@ public class UDPTrackerErrorMessage
 	private final String reason;
 
 	private UDPTrackerErrorMessage(ByteBuffer data, int transactionId,
-		String reason) {
+			String reason) {
 		super(Type.ERROR, data);
 		this.transactionId = transactionId;
 		this.reason = reason;
@@ -60,15 +59,15 @@ public class UDPTrackerErrorMessage
 	}
 
 	public static UDPTrackerErrorMessage parse(ByteBuffer data)
-		throws MessageValidationException {
+			throws MessageValidationException {
 		if (data.remaining() < UDP_TRACKER_ERROR_MIN_MESSAGE_SIZE) {
 			throw new MessageValidationException(
-				"Invalid tracker error message size!");
+					"Invalid tracker error message size!");
 		}
 
 		if (data.getInt() != Type.ERROR.getId()) {
 			throw new MessageValidationException(
-				"Invalid action code for tracker error!");
+					"Invalid action code for tracker error!");
 		}
 
 		int transactionId = data.getInt();
@@ -76,27 +75,23 @@ public class UDPTrackerErrorMessage
 		data.get(reasonBytes);
 
 		try {
-			return new UDPTrackerErrorMessage(data,
-				transactionId,
-				new String(reasonBytes, Torrent.BYTE_ENCODING)
-			);
+			return new UDPTrackerErrorMessage(data, transactionId, new String(
+					reasonBytes, Torrent.BYTE_ENCODING));
 		} catch (UnsupportedEncodingException uee) {
 			throw new MessageValidationException(
-				"Could not decode error message!", uee);
+					"Could not decode error message!", uee);
 		}
 	}
 
-	public static UDPTrackerErrorMessage craft(int transactionId,
-		String reason) throws UnsupportedEncodingException {
+	public static UDPTrackerErrorMessage craft(int transactionId, String reason)
+			throws UnsupportedEncodingException {
 		byte[] reasonBytes = reason.getBytes(Torrent.BYTE_ENCODING);
 		ByteBuffer data = ByteBuffer
-			.allocate(UDP_TRACKER_ERROR_MIN_MESSAGE_SIZE +
-				reasonBytes.length);
+				.allocate(UDP_TRACKER_ERROR_MIN_MESSAGE_SIZE
+						+ reasonBytes.length);
 		data.putInt(Type.ERROR.getId());
 		data.putInt(transactionId);
 		data.put(reasonBytes);
-		return new UDPTrackerErrorMessage(data,
-			transactionId,
-			reason);
+		return new UDPTrackerErrorMessage(data, transactionId, reason);
 	}
 }

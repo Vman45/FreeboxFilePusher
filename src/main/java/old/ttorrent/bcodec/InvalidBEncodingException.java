@@ -18,7 +18,6 @@ package old.ttorrent.bcodec;
 
 import java.io.IOException;
 
-
 /**
  * Exception thrown when a B-encoded stream cannot be decoded.
  *

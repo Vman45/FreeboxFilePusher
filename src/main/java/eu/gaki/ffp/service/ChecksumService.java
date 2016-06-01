@@ -12,25 +12,44 @@ import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.Adler32;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.gaki.ffp.domain.FfpFile;
+import eu.gaki.ffp.domain.FfpItem;
 
-// TODO: Auto-generated Javadoc
 /**
  * CheckedInputStream.
  */
-public class ChecksumFileService {
+public class ChecksumService {
 
 	/** The Constant CHUNK_SIZE. */
 	private static final int CHUNK_SIZE = 104857600; // 1024* 1024 * 100 = 100MB
 
 	/** The Constant LOGGER. */
 	private static final Logger LOGGER = LoggerFactory
-			.getLogger(ChecksumFileService.class);
+			.getLogger(ChecksumService.class);
+
+	/**
+	 * Compute the checksun of the FfpItem.
+	 *
+	 * @param item
+	 *            The FfpItem.
+	 * @return true if the checksum have changed
+	 */
+	public boolean computeChecksum(final FfpItem item) {
+		AtomicBoolean result = item
+				.getFfpFiles()
+				.stream()
+				.parallel()
+				.collect(() -> new AtomicBoolean(false),
+						(t, u) -> t.set(computeChecksum(u) || t.get()),
+						(t, u) -> t.set(t.get() || u.get()));
+		return result.get();
+	}
 
 	/**
 	 * Compute the checksun of the file.
@@ -60,9 +79,19 @@ public class ChecksumFileService {
 			if (Files.isRegularFile(path)) {
 				try (FileChannel inChannel = FileChannel.open(path,
 						StandardOpenOption.READ)) {
+					// Compute buffer size
+					long bufferSize;
+					if (inChannel.size() < Integer.MAX_VALUE) {
+						bufferSize = inChannel.size();
+					} else {
+						bufferSize = Integer.MAX_VALUE;
+					}
+					
+					// Create a buffer
 					final MappedByteBuffer buffer = inChannel.map(
-							FileChannel.MapMode.READ_ONLY, 0, inChannel.size());
-					buffer.load();
+							FileChannel.MapMode.READ_ONLY, 0, bufferSize);
+					inChannel.close();
+					
 					final Adler32 adler32 = new Adler32();
 					while (buffer.remaining() > 0) {
 						byte[] readed;

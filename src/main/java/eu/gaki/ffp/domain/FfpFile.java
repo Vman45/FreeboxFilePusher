@@ -34,11 +34,11 @@ public class FfpFile {
 	 * 40000 => Checksome for byte 20001 to byte 40000<br>
 	 */
 	private Map<Long, Long> adler32 = new HashMap<>();
-
-	/**
-	 * Size of file.
-	 */
-	private Long size;
+//
+//	/**
+//	 * Size of file.
+//	 */
+//	private Long size;
 
 	/**
 	 * Sets the adler32 date.
@@ -90,7 +90,17 @@ public class FfpFile {
 	public Path getPath() {
 		return this.path;
 	}
-
+	
+	/**
+	 * Sets the path.
+	 *
+	 * @return the path
+	 */
+	@Transient
+	public void setPath(Path path) {
+		setPathUri(path.toUri());
+	}
+	
 	/**
 	 * Gets the adler32.
 	 *
@@ -110,24 +120,24 @@ public class FfpFile {
 		this.adler32 = adler32;
 	}
 
-	/**
-	 * Sets the size.
-	 *
-	 * @param size
-	 *            the new size
-	 */
-	public void setSize(final Long size) {
-		this.size = size;
-	}
-
-	/**
-	 * Gets the size.
-	 *
-	 * @return the size
-	 */
-	public Long getSize() {
-		return this.size;
-	}
+//	/**
+//	 * Sets the size.
+//	 *
+//	 * @param size
+//	 *            the new size
+//	 */
+//	public void setSize(final Long size) {
+//		this.size = size;
+//	}
+//
+//	/**
+//	 * Gets the size.
+//	 *
+//	 * @return the size
+//	 */
+//	public Long getSize() {
+//		return this.size;
+//	}
 
 	/**
 	 * {@inheritDoc}

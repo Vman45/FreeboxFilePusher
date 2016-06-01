@@ -55,7 +55,7 @@ public class DaoServiceTest {
 	ffpItem1.setStatus(StatusEnum.ARCHIVED);
 	final FfpFile file = new FfpFile();
 	file.setPathUri(Paths.get("toto/docteur01").toUri());
-	file.setSize(42L);
+//	file.setSize(42L);
 	ffpItem1.addFile(file);
 
 	// Create Item 2
@@ -96,7 +96,7 @@ public class DaoServiceTest {
 	ffpItem1.setStatus(StatusEnum.ARCHIVED);
 	final FfpFile file = new FfpFile();
 	file.setPathUri(Paths.get("toto/docteur01").toUri());
-	file.setSize(42L);
+//	file.setSize(42L);
 	ffpItem1.addFile(file);
 
 	// Create Item 2
@@ -108,7 +108,7 @@ public class DaoServiceTest {
 	ffpItem3.setStatus(StatusEnum.TO_SEND);
 	final FfpFile file3 = new FfpFile();
 	file3.setPathUri(Paths.get("toto/docteur02").toUri());
-	file3.setSize(42L);
+//	file3.setSize(42L);
 	ffpItem3.addFile(file3);
 
 	filePusher.addFfpItem(ffpItem1);

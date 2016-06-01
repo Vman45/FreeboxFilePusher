@@ -7,13 +7,10 @@ import java.beans.XMLDecoder;
 import java.beans.XMLEncoder;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -80,7 +77,7 @@ public class DaoService {
 			e.writeObject(filePusher);
 			e.close();
 		} catch (final IOException e) {
-			e.printStackTrace();
+			LOGGER.error("Dao save error", e);
 		}
 	}
 
@@ -91,8 +88,7 @@ public class DaoService {
 		try {
 			Files.deleteIfExists(dataFile);
 		} catch (final IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.error("Dao clear error", e);
 		}
 	}
 

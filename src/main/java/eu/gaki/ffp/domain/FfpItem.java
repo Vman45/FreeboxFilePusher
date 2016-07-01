@@ -4,6 +4,7 @@
 package eu.gaki.ffp.domain;
 
 import java.net.URI;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -28,7 +29,7 @@ public class FfpItem {
 	 * @param ffpFiles
 	 *            the new ffp files
 	 */
-	public void setffpFiles(final List<FfpFile> ffpFiles) {
+	public void setFfpFiles(final List<FfpFile> ffpFiles) {
 		this.ffpFiles = ffpFiles;
 	}
 
@@ -50,6 +51,16 @@ public class FfpItem {
 	public void addFile(final FfpFile file) {
 		ffpFiles.add(file);
 	}
+	
+	/**
+	 * Adds the file.
+	 *
+	 * @param file
+	 *            the file
+	 */
+	public void removeFile(final FfpFile file) {
+		ffpFiles.remove(file);
+	}	
 
 	/**
 	 * Sets the status.
@@ -83,6 +94,17 @@ public class FfpItem {
 				.collect(Collectors.toList());
 		return result;
 	}
+
+	/**
+	 * Search an {@link FfpFile} by {@link Path}
+	 *
+	 * @param path
+	 *            The searched {@link Path}
+	 * @return
+	 */
+	public List<FfpFile> contains(final Path path) {
+		return contains(path.toUri());
+	}	
 
 	/**
 	 * {@inheritDoc}

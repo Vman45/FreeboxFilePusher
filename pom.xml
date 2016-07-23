@@ -175,15 +175,15 @@
 
 		</dependency>
 
-		<dependency>
+<!-- 		<dependency> -->
 		
-			<groupId>com.turn</groupId>
+<!-- 			<groupId>com.turn</groupId> -->
 			
-			<artifactId>ttorrent-core</artifactId>
+<!-- 			<artifactId>ttorrent-core</artifactId> -->
 			
-			<version>1.6-SNAPSHOT</version>
+<!-- 			<version>1.6-SNAPSHOT</version> -->
 			
-		</dependency>
+<!-- 		</dependency> -->
 
 	</dependencies>
 

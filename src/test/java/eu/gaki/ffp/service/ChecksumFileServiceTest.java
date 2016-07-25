@@ -18,8 +18,9 @@ import eu.gaki.ffp.domain.FfpItem;
 
 public class ChecksumFileServiceTest {
 
+	private final FileService fs = new FileService();
 	private final ChecksumService cfs = new ChecksumService();
-	private final ItemService is = new ItemService();
+	private final ItemService is = new ItemService(fs);
 
 	@Test
 	public void computeChecksumFfpFile() {

@@ -29,16 +29,11 @@ public class FfpFile {
 	private LocalDateTime adler32Date = null;
 
 	/**
-	 * Map for store checksome : Bytes number => Checksome value.<br>
+	 * Map for store checksome : [Bytes number] => [Checksome value].<br>
 	 * 20000 => Checksome for byte 0 to byte 20000<br>
 	 * 40000 => Checksome for byte 20001 to byte 40000<br>
 	 */
 	private Map<Long, Long> adler32 = new HashMap<>();
-//
-//	/**
-//	 * Size of file.
-//	 */
-//	private Long size;
 
 	/**
 	 * Sets the adler32 date.
@@ -119,25 +114,6 @@ public class FfpFile {
 	public void setAdler32(final Map<Long, Long> adler32) {
 		this.adler32 = adler32;
 	}
-
-//	/**
-//	 * Sets the size.
-//	 *
-//	 * @param size
-//	 *            the new size
-//	 */
-//	public void setSize(final Long size) {
-//		this.size = size;
-//	}
-//
-//	/**
-//	 * Gets the size.
-//	 *
-//	 * @return the size
-//	 */
-//	public Long getSize() {
-//		return this.size;
-//	}
 
 	/**
 	 * {@inheritDoc}

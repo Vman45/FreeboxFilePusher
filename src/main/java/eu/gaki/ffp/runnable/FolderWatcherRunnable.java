@@ -70,7 +70,7 @@ public class FolderWatcherRunnable implements Runnable {
 							}
 						}
 
-						if (!alreadyPushed && isFileFinishCopied(path)) {
+						if (!alreadyPushed) {
 							for (final FolderListener listener : listeners) {
 								listener.scanPath(watchedFolder, path);
 							}
@@ -89,48 +89,6 @@ public class FolderWatcherRunnable implements Runnable {
 		} catch (final Exception e) {
 			LOGGER.error("Cannot watch folder:" + e.getMessage(), e);
 		}
-	}
-
-	/**
-	 * Checks if is file finish copied.
-	 *
-	 * @param file
-	 *            the file
-	 * @return true, if is file finish copied
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws InterruptedException
-	 *             the interrupted exception
-	 */
-	private boolean isFileFinishCopied(final Path file) throws IOException,
-			InterruptedException {
-		final Map<Path, Long> sizes = new HashMap<Path, Long>();
-
-		final AtomicBoolean finishCopied = new AtomicBoolean(true);
-		Files.walkFileTree(file, new SimpleFileVisitor<Path>() {
-			@Override
-			public FileVisitResult visitFile(final Path file,
-					final BasicFileAttributes attrs) throws IOException {
-				sizes.put(file, Files.size(file));
-				return FileVisitResult.CONTINUE;
-			}
-		});
-		Thread.sleep(500);
-		Files.walkFileTree(file, new SimpleFileVisitor<Path>() {
-			@Override
-			public FileVisitResult visitFile(final Path file,
-					final BasicFileAttributes attrs) throws IOException {
-				FileVisitResult result = FileVisitResult.CONTINUE;
-				final Long initialSize = sizes.get(file);
-				if (initialSize == null
-						|| !initialSize.equals(Files.size(file))) {
-					finishCopied.set(false);
-					result = FileVisitResult.TERMINATE;
-				}
-				return result;
-			}
-		});
-		return finishCopied.get();
 	}
 
 	/**

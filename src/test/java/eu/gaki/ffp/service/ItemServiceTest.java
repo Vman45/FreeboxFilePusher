@@ -11,7 +11,8 @@ import eu.gaki.ffp.domain.FfpItem;
 
 public class ItemServiceTest {
 
-	private final ItemService is = new ItemService();
+	private final FileService fs = new FileService();
+	private final ItemService is = new ItemService(fs);
 
 	@Test
 	public void delete() {

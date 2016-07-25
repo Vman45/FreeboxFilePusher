@@ -94,7 +94,7 @@ public class ItemService {
 	}
 
 	/**
-	 * Creates the.
+	 * Creates the FfpItem.
 	 *
 	 * @param path
 	 *            the path
@@ -102,15 +102,10 @@ public class ItemService {
 	 */
 	public FfpItem create(Path path) {
 		FfpItem result;
-
 		result = new FfpItem();
 		result.setStatus(StatusEnum.WATCH);
-
 		result.addFile(fileService.create(path));
-
-		// It's a folder, we include all contain
 		scanDirectory(path, result);
-
 		return result;
 	}
 

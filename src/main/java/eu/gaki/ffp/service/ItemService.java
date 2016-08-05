@@ -161,9 +161,6 @@ public class ItemService {
 	 *            the item to delete.
 	 */
 	public void delete(FfpItem item) {
-		// We cannot delete when a MappedByteBuffer is still in memory (event if
-		// nobody reference/use it anymore)
-		System.gc();
 		// Start the deletion
 		List<FfpFile> folders = new ArrayList<>();
 		item.getFfpFiles().parallelStream().forEach((ffpFile) -> {

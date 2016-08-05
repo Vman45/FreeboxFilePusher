@@ -13,7 +13,7 @@ public class ConfigServiceTest {
         
         ConfigService cs = new ConfigService(Paths.get("src/test/resources/eu/gaki/ffp/freeboxFilePusher.properties"));
         
-        Assert.assertEquals("www-data/rss.xml", cs.getRssLocation());
+        Assert.assertEquals("www-data\\rss.xml", cs.getRssLocation().toString());
         
     }
 }

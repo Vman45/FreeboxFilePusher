@@ -5,7 +5,6 @@ package eu.gaki.ffp.service;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -87,14 +86,12 @@ public class ChecksumService {
 					} else {
 						bufferSize = Integer.MAX_VALUE;
 					}
-					
+
 					// Create a buffer
-//					final MappedByteBuffer buffer = inChannel.map(
-//							FileChannel.MapMode.READ_ONLY, 0, bufferSize);
 					final ByteBuffer buffer = ByteBuffer.allocate(bufferSize);
-					
+
 					inChannel.close();
-					
+
 					final Adler32 adler32 = new Adler32();
 					while (buffer.remaining() > 0) {
 						byte[] readed;

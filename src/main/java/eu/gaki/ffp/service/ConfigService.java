@@ -22,8 +22,7 @@ import org.slf4j.LoggerFactory;
 public class ConfigService {
 
 	/** The Constant LOGGER. */
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(ConfigService.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigService.class);
 
 	/** The configuration. */
 	private Properties configuration;
@@ -48,8 +47,7 @@ public class ConfigService {
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
-	private void loadConfigurationFile(final Path fileLocation)
-			throws IOException {
+	private void loadConfigurationFile(final Path fileLocation) throws IOException {
 		configuration = new Properties();
 		Path propertiesfileLocation;
 		if (fileLocation != null) {
@@ -63,8 +61,7 @@ public class ConfigService {
 				configuration.load(configurationInputStream);
 			}
 		} catch (final IOException e) {
-			LOGGER.error("Cannot load configuration file: {}", e.getMessage(),
-					e);
+			LOGGER.error("Cannot load configuration file: {}", e.getMessage(), e);
 			throw e;
 		}
 	}
@@ -78,18 +75,14 @@ public class ConfigService {
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
-	private InputStream getConfigurationInputStream(
-			final Path propertiesfileLocation) throws IOException {
+	private InputStream getConfigurationInputStream(final Path propertiesfileLocation) throws IOException {
 		InputStream configurationInputStream = null;
 		if (Files.isRegularFile(propertiesfileLocation)) {
 			// Try to load from disk
-			configurationInputStream = Files
-					.newInputStream(propertiesfileLocation);
-		} else if (getClass().getResourceAsStream(
-				propertiesfileLocation.toString()) != null) {
+			configurationInputStream = Files.newInputStream(propertiesfileLocation);
+		} else if (getClass().getResourceAsStream(propertiesfileLocation.toString()) != null) {
 			// Try to load from classpath
-			configurationInputStream = getClass().getResourceAsStream(
-					propertiesfileLocation.toString());
+			configurationInputStream = getClass().getResourceAsStream(propertiesfileLocation.toString());
 		}
 		return configurationInputStream;
 	}
@@ -100,8 +93,7 @@ public class ConfigService {
 	 * @return the rss location
 	 */
 	public Path getRssLocation() {
-		String rssLocation = configuration.getProperty("rss.location",
-				"rss.xml");
+		final String rssLocation = configuration.getProperty("rss.location", "rss.xml");
 		return FileSystems.getDefault().getPath(rssLocation);
 	}
 
@@ -111,8 +103,7 @@ public class ConfigService {
 	 * @return the data file location
 	 */
 	public Path getDataFileLocation() {
-		String dataFileLocation = configuration.getProperty(
-				"ffp.data.file.location", "ffp-data.xml");
+		final String dataFileLocation = configuration.getProperty("ffp.data.file.location", "ffp-data.xml");
 		return FileSystems.getDefault().getPath(dataFileLocation);
 	}
 
@@ -122,8 +113,7 @@ public class ConfigService {
 	 * @return the rss url
 	 */
 	public String getRssUrl() {
-		return configuration.getProperty("rss.url",
-				"http://unknown/${file.name}");
+		return configuration.getProperty("rss.url", "http://unknown/${file.name}");
 	}
 
 	/**
@@ -132,8 +122,7 @@ public class ConfigService {
 	 * @return the boolean
 	 */
 	public Boolean isEnableBittorent() {
-		return Boolean.valueOf(configuration.getProperty(
-				"ffp.enable.bittorrent", "false"));
+		return Boolean.valueOf(configuration.getProperty("ffp.enable.bittorrent", "false"));
 	}
 
 	/**
@@ -142,8 +131,7 @@ public class ConfigService {
 	 * @return the boolean
 	 */
 	public Boolean isEnableHttp() {
-		return Boolean.valueOf(configuration.getProperty("ffp.enable.http",
-				"true"));
+		return Boolean.valueOf(configuration.getProperty("ffp.enable.http", "true"));
 	}
 
 	/**
@@ -152,8 +140,16 @@ public class ConfigService {
 	 * @return the repeat interval
 	 */
 	public Long getRepeatInterval() {
-		return Long.valueOf(configuration.getProperty(
-				"folder.scan.interval.seconds", "600"));
+		return Long.valueOf(configuration.getProperty("folder.scan.interval.seconds", "600"));
+	}
+
+	/**
+	 * Gets the file change cooldown.
+	 *
+	 * @return the file change cooldown
+	 */
+	public Long getFileChangeCooldown() {
+		return Long.valueOf(configuration.getProperty("folder.scan.file.change.cooldown.seconds", "3600"));
 	}
 
 	/**
@@ -166,8 +162,7 @@ public class ConfigService {
 		final String key = "folders.to.watch.";
 		int i = 1;
 		while (configuration.containsKey(key + i)) {
-			final String folderLocation = configuration.getProperty(key + i,
-					null);
+			final String folderLocation = configuration.getProperty(key + i, null);
 			if (folderLocation != null && folderLocation.trim().length() != 0) {
 				final Path folder = Paths.get(folderLocation);
 				foldersToWatch.add(folder);

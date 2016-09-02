@@ -5,9 +5,13 @@ package eu.gaki.ffp.domain;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
@@ -51,7 +55,7 @@ public class FfpItem {
 	public void addFile(final FfpFile file) {
 		ffpFiles.add(file);
 	}
-	
+
 	/**
 	 * Adds the file.
 	 *
@@ -60,7 +64,7 @@ public class FfpItem {
 	 */
 	public void removeFile(final FfpFile file) {
 		ffpFiles.remove(file);
-	}	
+	}
 
 	/**
 	 * Sets the status.
@@ -89,8 +93,7 @@ public class FfpItem {
 	 * @return
 	 */
 	public List<FfpFile> contains(final URI uri) {
-		final List<FfpFile> result = getFfpFiles().parallelStream()
-				.filter(p -> Objects.equals(uri, p.getPathUri()))
+		final List<FfpFile> result = getFfpFiles().parallelStream().filter(p -> Objects.equals(uri, p.getPathUri()))
 				.collect(Collectors.toList());
 		return result;
 	}
@@ -104,7 +107,30 @@ public class FfpItem {
 	 */
 	public List<FfpFile> contains(final Path path) {
 		return contains(path.toUri());
-	}	
+	}
+
+	/**
+	 * Return the last date when we compute the checksome adler32 for this file.
+	 *
+	 * @return the last date
+	 */
+	public LocalDateTime getAdler32Date() {
+		final AtomicLong result = this.getFfpFiles().stream().parallel().collect(() -> new AtomicLong(0), (t, u) -> {
+			long epoch = 0;
+			if (!u.getAdler32Date().equals(LocalDateTime.MIN)) {
+				epoch = u.getAdler32Date().toInstant(ZoneOffset.UTC).toEpochMilli();
+			}
+			if (t.get() < epoch) {
+				t.set(epoch);
+			}
+		}, (t, u) -> {
+			if (t.get() < u.get()) {
+				t.set(u.get());
+			}
+		});
+
+		return LocalDateTime.ofInstant(Instant.ofEpochMilli(result.get()), ZoneOffset.UTC.normalized());
+	}
 
 	/**
 	 * {@inheritDoc}

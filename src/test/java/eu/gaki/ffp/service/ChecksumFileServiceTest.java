@@ -1,5 +1,5 @@
 /*
- * 
+ *
  */
 package eu.gaki.ffp.service;
 
@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.StandardOpenOption;
+import java.time.LocalDateTime;
 import java.util.Random;
 
 import org.junit.Assert;
@@ -38,8 +39,7 @@ public class ChecksumFileServiceTest {
 		Assert.assertTrue(result3);
 
 		// Modification du fichier de test
-		try (FileChannel fc = FileChannel.open(file.getPath(),
-				StandardOpenOption.WRITE, StandardOpenOption.APPEND)) {
+		try (FileChannel fc = FileChannel.open(file.getPath(), StandardOpenOption.WRITE, StandardOpenOption.APPEND)) {
 			final Random rdm = new Random();
 			final byte[] bytes = new byte[4096];
 			final ByteBuffer buff = ByteBuffer.allocate(bytes.length);
@@ -61,19 +61,18 @@ public class ChecksumFileServiceTest {
 
 		Assert.assertTrue("No adler32 computed", file.getAdler32().size() > 0);
 	}
-	
+
 	@Test
 	public void computeChecksumFfpItem() {
-		FfpItem item = CreationUtil.createFfpItem();
+		final FfpItem item = CreationUtil.createFfpItem();
 		final boolean result1 = cfs.computeChecksum(item);
 		final boolean result2 = cfs.computeChecksum(item);
 		Assert.assertTrue(result1);
 		Assert.assertFalse(result2);
-		
+
 		// Modification du fichier de test
-		FfpFile next = item.getFfpFiles().iterator().next();
-		try (FileChannel fc = FileChannel.open(next.getPath(),
-				StandardOpenOption.WRITE, StandardOpenOption.APPEND)) {
+		final FfpFile next = item.getFfpFiles().iterator().next();
+		try (FileChannel fc = FileChannel.open(next.getPath(), StandardOpenOption.WRITE, StandardOpenOption.APPEND)) {
 			final Random rdm = new Random();
 			final byte[] bytes = new byte[4096];
 			final ByteBuffer buff = ByteBuffer.allocate(bytes.length);
@@ -92,6 +91,10 @@ public class ChecksumFileServiceTest {
 
 		final boolean result4 = cfs.computeChecksum(item);
 		Assert.assertTrue(result4);
+
+		final LocalDateTime adler32Date = item.getAdler32Date();
+		Assert.assertNotSame(LocalDateTime.MIN, adler32Date);
+
 		is.delete(item);
 	}
 

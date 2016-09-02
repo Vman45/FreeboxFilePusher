@@ -26,7 +26,7 @@ public class FfpFile {
 	/**
 	 * The date when we compute the checksome adler32 for this file.
 	 */
-	private LocalDateTime adler32Date = null;
+	private LocalDateTime adler32Date = LocalDateTime.MIN;
 
 	/**
 	 * Map for store checksome : [Bytes number] => [Checksome value].<br>
@@ -85,17 +85,17 @@ public class FfpFile {
 	public Path getPath() {
 		return this.path;
 	}
-	
+
 	/**
 	 * Sets the path.
 	 *
 	 * @return the path
 	 */
 	@Transient
-	public void setPath(Path path) {
+	public void setPath(final Path path) {
 		setPathUri(path.toUri());
 	}
-	
+
 	/**
 	 * Gets the adler32.
 	 *

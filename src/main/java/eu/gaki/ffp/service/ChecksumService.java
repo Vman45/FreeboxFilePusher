@@ -1,5 +1,5 @@
 /*
- * 
+ *
  */
 package eu.gaki.ffp.service;
 
@@ -30,8 +30,7 @@ public class ChecksumService {
 	private static final int CHUNK_SIZE = 104857600; // 1024* 1024 * 100 = 100MB
 
 	/** The Constant LOGGER. */
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(ChecksumService.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ChecksumService.class);
 
 	/**
 	 * Compute the checksun of the FfpItem.
@@ -41,14 +40,15 @@ public class ChecksumService {
 	 * @return true if the checksum have changed
 	 */
 	public boolean computeChecksum(final FfpItem item) {
-		AtomicBoolean result = item
-				.getFfpFiles()
-				.stream()
-				.parallel()
-				.collect(() -> new AtomicBoolean(false),
-						(t, u) -> t.set(t.get() || computeChecksum(u)),
-						(t, u) -> t.set(t.get() || u.get()));
-		return result.get();
+		final AtomicBoolean result = item.getFfpFiles().stream().parallel().collect(() -> new AtomicBoolean(false),
+				(t, u) -> {
+					t.set(t.get() || computeChecksum(u));
+				}, (t, u) -> {
+					t.set(t.get() || u.get());
+				});
+		final boolean b = result.get();
+		LOGGER.info("Compute the checksum of {}. Result have change: {}", item, b);
+		return b;
 	}
 
 	/**
@@ -77,8 +77,7 @@ public class ChecksumService {
 		if (file != null && file.getPath() != null) {
 			final Path path = file.getPath();
 			if (Files.isRegularFile(path)) {
-				try (FileChannel inChannel = FileChannel.open(path,
-						StandardOpenOption.READ)) {
+				try (FileChannel inChannel = FileChannel.open(path, StandardOpenOption.READ)) {
 					// Compute buffer size
 					int bufferSize;
 					if (inChannel.size() < Integer.MAX_VALUE) {
@@ -105,19 +104,17 @@ public class ChecksumService {
 						final Long newChecksum = adler32.getValue();
 						adler32.reset();
 						final Long position = Long.valueOf(buffer.position());
-						final Long oldChecksum = file.getAdler32()
-								.get(position);
-						if (oldChecksum == null
-								|| !oldChecksum.equals(newChecksum)) {
+						final Long oldChecksum = file.getAdler32().get(position);
+						if (oldChecksum == null || !oldChecksum.equals(newChecksum)) {
 							result = true;
 						}
 						newAdler32.put(position, newChecksum);
 					}
 					buffer.clear();
-					file.setAdler32Date(LocalDateTime.now());
-					file.setAdler32(newAdler32);
 					if (result) {
-						LOGGER.info("Checksum changed {" + path + "}.");
+						file.setAdler32Date(LocalDateTime.now());
+						file.setAdler32(newAdler32);
+						LOGGER.info("Checksum changed {}.", path);
 					}
 				} catch (final IOException e) {
 					LOGGER.error("Checksum compute faild for {" + path + "}", e);

@@ -1,5 +1,5 @@
 /*
- * 
+ *
  */
 package eu.gaki.ffp.service;
 
@@ -27,11 +27,10 @@ import eu.gaki.ffp.domain.StatusEnum;
 public class ItemService {
 
 	/** The Constant LOGGER. */
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(ItemService.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ItemService.class);
 
 	/** The file service. */
-	private FileService fileService;
+	private final FileService fileService;
 
 	/**
 	 * Instantiates a new item service.
@@ -39,7 +38,7 @@ public class ItemService {
 	 * @param fileService
 	 *            the file service
 	 */
-	public ItemService(FileService fileService) {
+	public ItemService(final FileService fileService) {
 		this.fileService = fileService;
 	}
 
@@ -50,28 +49,27 @@ public class ItemService {
 	 *            the FfpItem
 	 * @return true if the item have changed (ex: new files)
 	 */
-	public boolean update(FfpItem item) {
+	public boolean update(final FfpItem item) {
 		final AtomicBoolean result = new AtomicBoolean(false);
 
-		List<FfpFile> ffpFiles = new ArrayList<>(item.getFfpFiles());
+		final List<FfpFile> ffpFiles = new ArrayList<>(item.getFfpFiles());
 		// Delete no more existing file
 		ffpFiles.forEach((file) -> {
-			Path path = file.getPath();
-			boolean exist = Files.exists(path);
+			final Path path = file.getPath();
+			final boolean exist = Files.exists(path);
 			if (!exist) {
 				item.removeFile(file);
 				result.set(true);
 			}
 		});
 		// Add new file/directory
-		List<Path> newDirectories = new ArrayList<Path>();
+		final List<Path> newDirectories = new ArrayList<Path>();
 		ffpFiles.forEach((file) -> {
-			Path path = file.getPath();
+			final Path path = file.getPath();
 			if (Files.isDirectory(path)) {
-				try (DirectoryStream<Path> directoryStream = Files
-						.newDirectoryStream(path)) {
-					for (Path pathInDirectory : directoryStream) {
-						List<FfpFile> contains = item.contains(pathInDirectory);
+				try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(path)) {
+					for (final Path pathInDirectory : directoryStream) {
+						final List<FfpFile> contains = item.contains(pathInDirectory);
 						if (contains.isEmpty()) {
 							// New file or directory
 							item.addFile(fileService.create(pathInDirectory));
@@ -82,15 +80,16 @@ public class ItemService {
 							result.set(true);
 						}
 					}
-				} catch (IOException e) {
+				} catch (final IOException e) {
 					LOGGER.error("Cannot list folder: " + path, e);
 				}
 			}
 		});
 		// Scan new directory
-		newDirectories.forEach((directory) -> scanDirectory(directory, item));
-
-		return result.get();
+		newDirectories.forEach((directory) -> recursiveScanPath(directory, item));
+		final boolean b = result.get();
+		LOGGER.info("Update the item {}. Result have change: {}", item, b);
+		return b;
 	}
 
 	/**
@@ -100,85 +99,80 @@ public class ItemService {
 	 *            the path
 	 * @return the ffp item
 	 */
-	public FfpItem create(Path path) {
+	public FfpItem create(final Path path) {
 		FfpItem result;
 		result = new FfpItem();
 		result.setStatus(StatusEnum.WATCH);
-		result.addFile(fileService.create(path));
-		scanDirectory(path, result);
+		recursiveScanPath(path, result);
+		LOGGER.info("Create the item {}", result);
 		return result;
 	}
 
 	/**
-	 * Scan directory and add all path to the {@link FfpItem}.
-	 * 
+	 * Scan a path and add all path to the {@link FfpItem}.
+	 *
 	 * @param path
-	 *            The directory to scan.
+	 *            The directory or the file to scan.
 	 * @param item
 	 *            The {@link FfpItem} to fill.
 	 */
-	private void scanDirectory(Path path, FfpItem item) {
-		if (Files.isDirectory(path)) {
-			try {
-				Files.walkFileTree(path, new FileVisitor<Path>() {
+	private void recursiveScanPath(final Path path, final FfpItem item) {
+		try {
+			Files.walkFileTree(path, new FileVisitor<Path>() {
 
-					@Override
-					public FileVisitResult preVisitDirectory(Path dir,
-							BasicFileAttributes attrs) throws IOException {
-						item.addFile(fileService.create(dir));
-						return FileVisitResult.CONTINUE;
-					}
+				@Override
+				public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs)
+						throws IOException {
+					item.addFile(fileService.create(dir));
+					return FileVisitResult.CONTINUE;
+				}
 
-					@Override
-					public FileVisitResult visitFile(Path file,
-							BasicFileAttributes attrs) throws IOException {
-						item.addFile(fileService.create(file));
-						return FileVisitResult.CONTINUE;
-					}
+				@Override
+				public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+					item.addFile(fileService.create(file));
+					return FileVisitResult.CONTINUE;
+				}
 
-					@Override
-					public FileVisitResult visitFileFailed(Path file,
-							IOException exc) throws IOException {
-						return FileVisitResult.CONTINUE;
-					}
+				@Override
+				public FileVisitResult visitFileFailed(final Path file, final IOException exc) throws IOException {
+					return FileVisitResult.CONTINUE;
+				}
 
-					@Override
-					public FileVisitResult postVisitDirectory(Path dir,
-							IOException exc) throws IOException {
-						return FileVisitResult.CONTINUE;
-					}
-				});
-			} catch (IOException e) {
-				LOGGER.error("Cannot create Item for folder: " + path, e);
-			}
+				@Override
+				public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) throws IOException {
+					return FileVisitResult.CONTINUE;
+				}
+			});
+		} catch (final IOException e) {
+			LOGGER.error("Cannot create Item for folder: " + path, e);
 		}
 	}
 
 	/**
 	 * Delete all the files of the item.
-	 * 
+	 *
 	 * @param item
 	 *            the item to delete.
 	 */
-	public void delete(FfpItem item) {
+	public void delete(final FfpItem item) {
 		// Start the deletion
-		List<FfpFile> folders = new ArrayList<>();
+		final List<FfpFile> folders = new ArrayList<>();
 		item.getFfpFiles().parallelStream().forEach((ffpFile) -> {
 			try {
 				if (Files.isRegularFile(ffpFile.getPath())) {
 					Files.delete(ffpFile.getPath());
 				} else {
 					// We need to delete folder when they are empty
-				folders.add(ffpFile);
+					folders.add(ffpFile);
+					/**/}
+				/**/} catch (final IOException e) {
+				/**/LOGGER.error("Cannot delete item.", e);
 				/**/}
-			/**/} catch (IOException e) {
-			/**/LOGGER.error("Cannot delete item.", e);
-			/**/}
-		/**/});
+			/**/});
 		folders.forEach((ffpFile) -> {
 			try {
 				Files.delete(ffpFile.getPath());
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				LOGGER.error("Cannot delete item.", e);
 			}
 		});

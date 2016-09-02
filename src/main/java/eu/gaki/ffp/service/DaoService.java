@@ -8,6 +8,7 @@ import java.beans.XMLEncoder;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,13 +24,12 @@ import eu.gaki.ffp.domain.FilePusher;
 import eu.gaki.ffp.domain.StatusEnum;
 
 /**
- * He we just serialize/deserialize main objet domain
+ * He we just serialize/deserialize main objet domain.
  */
 public class DaoService {
 
 	/** The Constant LOGGER. */
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(DaoService.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(DaoService.class);
 
 	/** The Constant DATA_FILE. */
 	private final Path dataFile;
@@ -44,8 +44,31 @@ public class DaoService {
 	 * @param configService
 	 *            the config service
 	 */
-	public DaoService(ConfigService configService) {
+	public DaoService(final ConfigService configService) {
 		dataFile = configService.getDataFileLocation();
+		// Load the data
+		loadDataFromFile();
+	}
+
+	/**
+	 * Load data from file.
+	 */
+	private synchronized void loadDataFromFile() {
+		if (Files.exists(dataFile)) {
+			try (InputStream is = Files.newInputStream(dataFile);
+					BufferedInputStream bis = new BufferedInputStream(is);) {
+				final XMLDecoder d = new XMLDecoder(bis);
+				filePusher = (FilePusher) d.readObject();
+				d.close();
+			} catch (final IOException e) {
+				LOGGER.error("Dao load error", e);
+				LOGGER.info("Dao load new Data");
+				filePusher = new FilePusher();
+			}
+		} else {
+			LOGGER.info("Dao load new Data");
+			filePusher = new FilePusher();
+		}
 	}
 
 	/**
@@ -54,15 +77,9 @@ public class DaoService {
 	 * @return the file pusher
 	 */
 	public FilePusher get() {
-		try {
-			if (filePusher == null) {
-				final XMLDecoder d = new XMLDecoder(new BufferedInputStream(
-						Files.newInputStream(dataFile)));
-				filePusher = (FilePusher) d.readObject();
-				d.close();
-			}
-		} catch (final IOException e) {
-			filePusher = new FilePusher();
+		if (filePusher == null) {
+			// Load the data
+			loadDataFromFile();
 		}
 		return filePusher;
 	}
@@ -70,10 +87,9 @@ public class DaoService {
 	/**
 	 * Save.
 	 */
-	public void save() {
+	public synchronized void save() {
 		try {
-			final XMLEncoder e = new XMLEncoder(new BufferedOutputStream(
-					Files.newOutputStream(dataFile)));
+			final XMLEncoder e = new XMLEncoder(new BufferedOutputStream(Files.newOutputStream(dataFile)));
 			e.writeObject(filePusher);
 			e.close();
 		} catch (final IOException e) {
@@ -84,24 +100,24 @@ public class DaoService {
 	/**
 	 * Clear.
 	 */
-	public void clear() {
+	public synchronized void clear() {
 		try {
 			Files.deleteIfExists(dataFile);
+			filePusher = new FilePusher();
 		} catch (final IOException e) {
 			LOGGER.error("Dao clear error", e);
 		}
 	}
 
 	/**
-	 * Search an {@link FfpFile} by {@link URI}
+	 * Search an {@link FfpFile} by {@link URI}.
 	 *
 	 * @param uri
 	 *            The searched {@link URI}
 	 * @return The FfpItem which contain the {@link URI}
 	 */
 	public List<FfpItem> contains(final URI uri) {
-		final List<FfpItem> result = get().getItems().parallelStream()
-				.filter(p -> !p.contains(uri).isEmpty())
+		final List<FfpItem> result = get().getItems().parallelStream().filter(p -> !p.contains(uri).isEmpty())
 				.collect(Collectors.toList());
 		return result;
 	}

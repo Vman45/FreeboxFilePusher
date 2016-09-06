@@ -33,6 +33,9 @@ public class ServiceProvider {
 	/** The item service. */
 	private final ItemService itemService;
 
+	/** The bt service. */
+	private final BtService btService;
+
 	/**
 	 * Instantiates a new service provider.
 	 *
@@ -64,7 +67,7 @@ public class ServiceProvider {
 		checksumService = new ChecksumService();
 		fileService = new FileService();
 		itemService = new ItemService(fileService);
-
+		btService = new BtService(configService, daoService);
 	}
 
 	/**
@@ -119,6 +122,15 @@ public class ServiceProvider {
 	 */
 	public ItemService getItemService() {
 		return itemService;
+	}
+
+	/**
+	 * Gets the bt service.
+	 *
+	 * @return the btService
+	 */
+	public BtService getBtService() {
+		return btService;
 	}
 
 }

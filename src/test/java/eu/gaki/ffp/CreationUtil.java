@@ -1,3 +1,6 @@
+/*
+ * 
+ */
 package eu.gaki.ffp;
 
 import static java.security.AccessController.doPrivileged;
@@ -14,21 +17,21 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.junit.Assert;
 
-import sun.security.action.GetPropertyAction;
 import eu.gaki.ffp.domain.FfpFile;
 import eu.gaki.ffp.domain.FfpItem;
+import sun.security.action.GetPropertyAction;
 
 /**
  * The Class CreationUtil.
  */
 public class CreationUtil {
-	
+
 	/**
 	 * Creates the ffp item.
 	 *
 	 * @return the ffp item
 	 */
-	public static FfpItem createFfpItem() {
+	public static FfpItem createFfpSingleItem() {
 		FfpItem item = new FfpItem();
 
 		int nbFile = ThreadLocalRandom.current().nextInt(2, 2 + 1);
@@ -38,7 +41,26 @@ public class CreationUtil {
 
 		return item;
 	}
-	
+
+	/**
+	 * Creates the ffp item.
+	 *
+	 * @return the ffp item
+	 */
+	public static FfpItem createFfpFolderItem() {
+		final FfpItem item = new FfpItem();
+
+		final FfpFile folder = CreationUtil.createFfpFolder();
+		item.addFile(folder);
+
+		final int nbFile = ThreadLocalRandom.current().nextInt(2, 2 + 1);
+		for (int i = 0; i < nbFile; i++) {
+			item.addFile(createFfpFile(folder.getPath()));
+		}
+
+		return item;
+	}
+
 	/**
 	 * Create a random FfpFile.
 	 *
@@ -57,10 +79,10 @@ public class CreationUtil {
 		}
 		return file;
 	}
-	
+
 	/**
 	 * Create a random FfpFile.
-	 * 
+	 *
 	 * @return the ffp file
 	 */
 	@SuppressWarnings("restriction")
@@ -71,21 +93,20 @@ public class CreationUtil {
 	/**
 	 * Create a random FfpFile.
 	 *
-	 * @param dir the dir
+	 * @param dir
+	 *            the dir
 	 * @return the ffp file
 	 */
-	public static FfpFile createFfpFile(Path dir) {
+	public static FfpFile createFfpFile(final Path dir) {
 		FfpFile file = null;
 		try {
 			final Path tempFile = Files.createTempFile(dir, "test-", ".tmp");
 			tempFile.toFile().deleteOnExit();
-			try (FileChannel fc = FileChannel.open(tempFile,
-					StandardOpenOption.WRITE)) {
+			try (FileChannel fc = FileChannel.open(tempFile, StandardOpenOption.WRITE)) {
 				final Random rdm = new Random();
 				final byte[] bytes = new byte[4096];
 				final ByteBuffer buff = ByteBuffer.allocate(bytes.length);
-				for (int i = 0; i < ThreadLocalRandom.current().nextInt(1,
-						20 + 1); i++) {
+				for (int i = 0; i < ThreadLocalRandom.current().nextInt(1, 20 + 1); i++) {
 					rdm.nextBytes(bytes);
 					buff.put(bytes);
 					buff.flip();
@@ -106,5 +127,5 @@ public class CreationUtil {
 
 		return file;
 	}
-	
+
 }

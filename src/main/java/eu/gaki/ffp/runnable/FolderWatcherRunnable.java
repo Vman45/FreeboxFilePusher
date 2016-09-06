@@ -76,22 +76,24 @@ public class FolderWatcherRunnable implements Runnable {
 											.computeChecksum(item);
 									if (!filesChanged && !checksumChanged) {
 										final LocalDateTime adler32Date = item.getAdler32Date();
-										final Duration between = Duration.between(adler32Date, LocalDateTime.now());
-										if (between.getSeconds() >= fileChangeCooldown) {
-											// No change during the cooldown
-											// period:
-											// we mark as to send
-											item.setStatus(StatusEnum.TO_SEND);
-											LOGGER.info(
-													"Change status of {} to TO_SEND. Checksum don't have change for {} sec.",
-													item, between.getSeconds());
+										if (adler32Date != null) {
+											final Duration between = Duration.between(adler32Date, LocalDateTime.now());
+											if (between.getSeconds() >= fileChangeCooldown) {
+												// No change during the cooldown
+												// period:
+												// we mark as to send
+												item.setStatus(StatusEnum.TO_SEND);
+												LOGGER.info(
+														"Change status of {} to TO_SEND. Checksum don't have change for {} sec.",
+														item, between.getSeconds());
+											}
 										}
 									}
 								}
 							});
 						}
 					}
-					// Save the DAO
+					// Save the domain
 					serviceProvider.getDaoService().save();
 				} catch (final Exception e) {
 					LOGGER.error(e.getMessage(), e);

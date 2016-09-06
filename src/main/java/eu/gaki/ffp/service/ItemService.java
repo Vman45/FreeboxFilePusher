@@ -88,7 +88,7 @@ public class ItemService {
 		// Scan new directory
 		newDirectories.forEach((directory) -> recursiveScanPath(directory, item));
 		final boolean b = result.get();
-		LOGGER.info("Update the item {}. Result have change: {}", item, b);
+		LOGGER.trace("Update the item {}. Result have change: {}", item, b);
 		return b;
 	}
 

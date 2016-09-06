@@ -3,8 +3,10 @@
  */
 package eu.gaki.ffp.domain;
 
+import java.beans.Transient;
 import java.net.URI;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -14,6 +16,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
+// TODO: Auto-generated Javadoc
 /**
  * Represent a set of FfpFile to be sended in the same time.
  */
@@ -26,6 +29,15 @@ public class FfpItem {
 	 * Status of this pack of ffpFile.
 	 */
 	private StatusEnum status;
+
+	// /** TRANSIENT : The bt. */
+	// private Torrent torrent = null;
+
+	/** TRANSIENT : The bt file path. */
+	private Path torrentPath = null;
+
+	/** The bt path uri. */
+	private URI torrentPathUri = null;
 
 	/**
 	 * Sets the ffp files.
@@ -86,11 +98,76 @@ public class FfpItem {
 	}
 
 	/**
-	 * Search an {@link FfpFile} by {@link URI}
+	 * Sets the path.
+	 *
+	 * @param torrentPathUri
+	 *            the new uri
+	 */
+	public void setTorrentPathUri(final URI torrentPathUri) {
+		this.torrentPathUri = torrentPathUri;
+		if (torrentPathUri != null) {
+			this.torrentPath = Paths.get(torrentPathUri);
+		}
+	}
+
+	/**
+	 * Gets the path uri.
+	 *
+	 * @return the path uri
+	 */
+	public URI getTorrentPathUri() {
+		return this.torrentPathUri;
+	}
+
+	/**
+	 * Gets the path.
+	 *
+	 * @return the path
+	 */
+	@Transient
+	public Path getTorrentPath() {
+		return this.torrentPath;
+	}
+
+	/**
+	 * Sets the path.
+	 *
+	 * @param path
+	 *            the new bt path
+	 * @return the path
+	 */
+	@Transient
+	public void setTorrentPath(final Path path) {
+		setTorrentPathUri(path.toUri());
+	}
+
+	// /**
+	// * Gets the b torrent.
+	// *
+	// * @return the b torrent
+	// */
+	// @Transient
+	// public Torrent getTorrent() {
+	// return torrent;
+	// }
+
+	// /**
+	// * Sets the b torrent.
+	// *
+	// * @param torrent
+	// * the new b torrent
+	// */
+	// @Transient
+	// public void setTorrent(final Torrent torrent) {
+	// this.torrent = torrent;
+	// }
+
+	/**
+	 * Search an {@link FfpFile} by {@link URI}.
 	 *
 	 * @param uri
 	 *            The searched {@link URI}
-	 * @return
+	 * @return the list
 	 */
 	public List<FfpFile> contains(final URI uri) {
 		final List<FfpFile> result = getFfpFiles().parallelStream().filter(p -> Objects.equals(uri, p.getPathUri()))
@@ -99,20 +176,20 @@ public class FfpItem {
 	}
 
 	/**
-	 * Search an {@link FfpFile} by {@link Path}
+	 * Search an {@link FfpFile} by {@link Path}.
 	 *
 	 * @param path
 	 *            The searched {@link Path}
-	 * @return
+	 * @return the list
 	 */
 	public List<FfpFile> contains(final Path path) {
 		return contains(path.toUri());
 	}
 
 	/**
-	 * Return the last date when we compute the checksome adler32 for this file.
+	 * Return the last date when we compute the checksum adler32 for this file.
 	 *
-	 * @return the last date
+	 * @return the last date or null if never computed
 	 */
 	public LocalDateTime getAdler32Date() {
 		final AtomicLong result = this.getFfpFiles().stream().parallel().collect(() -> new AtomicLong(0), (t, u) -> {
@@ -129,7 +206,12 @@ public class FfpItem {
 			}
 		});
 
-		return LocalDateTime.ofInstant(Instant.ofEpochMilli(result.get()), ZoneOffset.UTC.normalized());
+		// If the Adler32 was never computed for this item : result is equals 0
+		LocalDateTime adler32Date = null;
+		if (result.get() != 0) {
+			adler32Date = LocalDateTime.ofInstant(Instant.ofEpochMilli(result.get()), ZoneOffset.UTC.normalized());
+		}
+		return adler32Date;
 	}
 
 	/**
@@ -151,6 +233,20 @@ public class FfpItem {
 	@Override
 	public int hashCode() {
 		return Objects.hashCode(getFfpFiles());
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String toString() {
+		String result;
+		if (getFfpFiles().size() > 0) {
+			result = getFfpFiles().get(0).toString();
+		} else {
+			result = super.toString();
+		}
+		return result;
 	}
 
 }

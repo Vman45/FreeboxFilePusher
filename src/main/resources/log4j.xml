@@ -12,7 +12,7 @@
 
 	<appender name="file" class="org.apache.log4j.RollingFileAppender">
 		<param name="append" value="true"/>
-		<param name="threshold" value="TRACE"/>
+		<param name="threshold" value="INFO"/>
 		<param name="file" value="freeboxFilePusher.log"/>
     	<param name="maxFileSize" value="2048KB"/>
 		<param name="maxBackupIndex" value="5" />
@@ -27,7 +27,7 @@
 	</appender>
 	
 	<logger name="eu.gaki.ffp">
-		<level value="TRACE" />
+		<level value="INFO" />
 	</logger>
  
 	<root>

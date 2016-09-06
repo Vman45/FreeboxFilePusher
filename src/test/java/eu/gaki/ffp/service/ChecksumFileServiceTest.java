@@ -64,7 +64,7 @@ public class ChecksumFileServiceTest {
 
 	@Test
 	public void computeChecksumFfpItem() {
-		final FfpItem item = CreationUtil.createFfpItem();
+		final FfpItem item = CreationUtil.createFfpSingleItem();
 		final boolean result1 = cfs.computeChecksum(item);
 		final boolean result2 = cfs.computeChecksum(item);
 		Assert.assertTrue(result1);

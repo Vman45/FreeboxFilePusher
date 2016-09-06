@@ -136,4 +136,18 @@ public class FfpFile {
 		return Objects.hashCode(getPathUri());
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String toString() {
+		String result;
+		if (pathUri != null) {
+			result = pathUri.toString();
+		} else {
+			result = super.toString();
+		}
+		return result;
+	}
+
 }

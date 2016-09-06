@@ -16,6 +16,7 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// TODO: Auto-generated Javadoc
 /**
  * Use for get configuration parameters.
  */
@@ -112,8 +113,8 @@ public class ConfigService {
 	 *
 	 * @return the rss url
 	 */
-	public String getRssUrl() {
-		return configuration.getProperty("rss.url", "http://unknown/${file.name}");
+	public String getPublicUrlRss() {
+		return configuration.getProperty("public.url.rss", "http://unknown/${file.name}");
 	}
 
 	/**
@@ -170,5 +171,59 @@ public class ConfigService {
 			i += 1;
 		}
 		return foldersToWatch;
+	}
+
+	/**
+	 * Gets the torrent tracker port.
+	 *
+	 * @return the torrent tracker port
+	 */
+	public Integer getTorrentTrackerPort() {
+		return Integer.valueOf(configuration.getProperty("torrent.tracker.port", "6969"));
+	}
+
+	/**
+	 * Gets the torrent tracker ip.
+	 *
+	 * @return the torrent tracker ip
+	 */
+	public String getTorrentTrackerIp() {
+		return configuration.getProperty("torrent.tracker.ip", "127.0.0.1");
+	}
+
+	/**
+	 * Gets the public url tracker announce.
+	 *
+	 * @return the public url tracker announce
+	 */
+	public String getPublicUrlTrackerAnnounce() {
+		return configuration.getProperty("public.url.tracker.announce", "http://unkown:6969/announce");
+	}
+
+	/**
+	 * Gets the public url torrent.
+	 *
+	 * @return the public url torrent
+	 */
+	public String getPublicUrlTorrent() {
+		return configuration.getProperty("public.url.torrent", "http://unknown/${file.name}");
+	}
+
+	/**
+	 * Gets the torrent file folder.
+	 *
+	 * @return the torrent file folder
+	 */
+	public String getTorrentFileFolder() {
+		return configuration.getProperty("torrent.file.folder", "www-data");
+	}
+
+	/**
+	 * Gets the torrent extension.
+	 *
+	 * @return the torrent extension
+	 */
+	public String getTorrentExtension() {
+		return configuration.getProperty("torrent.extension", ".torrent");
 	}
 }

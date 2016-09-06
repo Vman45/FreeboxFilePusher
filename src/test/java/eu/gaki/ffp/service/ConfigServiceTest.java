@@ -1,3 +1,6 @@
+/*
+ * 
+ */
 package eu.gaki.ffp.service;
 
 import java.io.IOException;
@@ -11,10 +14,10 @@ public class ConfigServiceTest {
 	@Test
 	public void createConfigService() throws IOException {
 
-		ConfigService cs = new ConfigService(
+		final ConfigService cs = new ConfigService(
 				Paths.get("src/test/resources/eu/gaki/ffp/freeboxFilePusher.properties"));
 
-		Assert.assertEquals("www-data\\rss.xml", cs.getRssLocation().toString());
+		Assert.assertEquals("target\\www-data\\rss.xml", cs.getRssLocation().toString());
 
 	}
 }

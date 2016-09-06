@@ -16,7 +16,7 @@ public class ItemServiceTest {
 
 	@Test
 	public void delete() {
-		FfpItem item = CreationUtil.createFfpItem();
+		FfpItem item = CreationUtil.createFfpSingleItem();
 
 		{
 			FfpFile folder = CreationUtil.createFfpFolder();

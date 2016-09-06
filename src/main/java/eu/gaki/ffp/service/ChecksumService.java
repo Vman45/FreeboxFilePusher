@@ -47,7 +47,7 @@ public class ChecksumService {
 					t.set(t.get() || u.get());
 				});
 		final boolean b = result.get();
-		LOGGER.info("Compute the checksum of {}. Result have change: {}", item, b);
+		LOGGER.trace("Compute the checksum of {}. Result have change: {}", item, b);
 		return b;
 	}
 

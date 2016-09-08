@@ -18,11 +18,14 @@ import org.apache.commons.daemon.DaemonInitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.gaki.ffp.domain.RssFileItem;
+import eu.gaki.ffp.domain.FfpItem;
+import eu.gaki.ffp.domain.StatusEnum;
 import eu.gaki.ffp.runnable.FolderWatcherRunnable;
+import eu.gaki.ffp.runnable.SendedWatcherRunnable;
 import eu.gaki.ffp.runnable.ToSendWatcherRunnable;
 import eu.gaki.ffp.service.ServiceProvider;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class FreeboxFilePusher.
  *
@@ -33,9 +36,13 @@ public class FreeboxFilePusher implements Daemon {
 	/** The Constant LOGGER. */
 	private static final Logger LOGGER = LoggerFactory.getLogger(FreeboxFilePusher.class);
 
-	/** The watch executor. */
-	private ScheduledExecutorService watchExecutor;
+	/** The watch folder executor. */
+	private ScheduledExecutorService watchFolderExecutor;
 
+	/** The watch status executor. */
+	private ScheduledExecutorService watchStatusExecutor;
+
+	/** The service provider. */
 	private ServiceProvider serviceProvider;
 
 	/**
@@ -53,7 +60,8 @@ public class FreeboxFilePusher implements Daemon {
 		// method as follows
 
 		// Create executor
-		watchExecutor = Executors.newScheduledThreadPool(5);
+		watchFolderExecutor = Executors.newScheduledThreadPool(10);
+		watchStatusExecutor = Executors.newScheduledThreadPool(2);
 
 		final String[] args = context.getArguments();
 		if (args != null && args.length > 0) {
@@ -62,30 +70,13 @@ public class FreeboxFilePusher implements Daemon {
 			serviceProvider = new ServiceProvider();
 		}
 
-		// Initialize the rss feed to empty
-		// FIXME Why ?
-		serviceProvider.getRssFileGenerator().generateRss(new ArrayList<RssFileItem>());
+		// Relaunch all SENDING item
+		final List<FfpItem> sendingItems = serviceProvider.getDaoService().getByStatus(StatusEnum.SENDING);
+		sendingItems.forEach(item -> item.setStatus(StatusEnum.TO_SEND));
+		serviceProvider.getDaoService().save();
 
-		// Add configured listener
-		// if (configService.isEnableBittorent()) {
-		// foldersWatcherRunnable
-		// .addFolderListener(new
-		// eu.gaki.ffp.bittorrent.BittorrentFolderListener(
-		// null));
-		// }
-
-		// if (configService.isEnableHttp()) {
-		// foldersWatcherRunnable
-		// .addFolderListener(new eu.gaki.ffp.http.HttpFolderListener(
-		// null));
-		// }
-
-		// // Get RSS items
-		// final Set<RssFileItem> rssFileItems = new HashSet<>();
-		// listeners.forEach(listener -> {
-		// rssFileItems.addAll(listener.getRssItemList());
-		// });
-
+		// Initialize the rss feed to empty for waiting an update
+		serviceProvider.getRssFileGenerator().generateRss(new ArrayList<FfpItem>());
 	}
 
 	/**
@@ -99,9 +90,13 @@ public class FreeboxFilePusher implements Daemon {
 		final Long repeatInterval = serviceProvider.getConfigService().getRepeatInterval();
 		for (final Path path : foldersToWatch) {
 			final FolderWatcherRunnable foldersWatcherRunnable = new FolderWatcherRunnable(path, serviceProvider);
-			watchExecutor.scheduleWithFixedDelay(foldersWatcherRunnable, 0, repeatInterval, TimeUnit.SECONDS);
+			watchFolderExecutor.scheduleWithFixedDelay(foldersWatcherRunnable, 0, repeatInterval, TimeUnit.SECONDS);
 		}
-		watchExecutor.scheduleWithFixedDelay(new ToSendWatcherRunnable(serviceProvider), 30, repeatInterval,
+
+		// Watcher of item status
+		watchStatusExecutor.scheduleWithFixedDelay(new ToSendWatcherRunnable(serviceProvider), 15, repeatInterval,
+				TimeUnit.SECONDS);
+		watchStatusExecutor.scheduleWithFixedDelay(new SendedWatcherRunnable(serviceProvider), 30, repeatInterval,
 				TimeUnit.SECONDS);
 	}
 
@@ -111,7 +106,7 @@ public class FreeboxFilePusher implements Daemon {
 	@Override
 	public void stop() throws Exception {
 		LOGGER.trace("Stop watching...");
-		watchExecutor.shutdown();
+		watchFolderExecutor.shutdown();
 	}
 
 	/**
@@ -120,7 +115,7 @@ public class FreeboxFilePusher implements Daemon {
 	@Override
 	public void destroy() {
 		LOGGER.trace("Destroy watching...");
-		watchExecutor = null;
+		watchFolderExecutor = null;
 		serviceProvider = null;
 	}
 

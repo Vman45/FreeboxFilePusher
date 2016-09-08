@@ -3,6 +3,7 @@
  */
 package eu.gaki.ffp.runnable;
 
+import java.nio.file.Files;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -17,13 +18,15 @@ import eu.gaki.ffp.service.ServiceProvider;
 /**
  * Job for scan a watched folder.
  */
-public class ToSendWatcherRunnable implements Runnable {
+public class SendedWatcherRunnable implements Runnable {
 
 	/** The Constant LOGGER. */
-	private static final Logger LOGGER = LoggerFactory.getLogger(ToSendWatcherRunnable.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(SendedWatcherRunnable.class);
 
 	/** The service provider. */
 	private final ServiceProvider serviceProvider;
+
+	private final Boolean deleteAfterSending;
 
 	/**
 	 * Instantiates a new job for scan a watched folder.
@@ -33,8 +36,9 @@ public class ToSendWatcherRunnable implements Runnable {
 	 * @param serviceProvider
 	 *            the service provider
 	 */
-	public ToSendWatcherRunnable(final ServiceProvider serviceProvider) {
+	public SendedWatcherRunnable(final ServiceProvider serviceProvider) {
 		this.serviceProvider = serviceProvider;
+		deleteAfterSending = serviceProvider.getConfigService().isDeleteAfterSending();
 	}
 
 	/**
@@ -43,31 +47,34 @@ public class ToSendWatcherRunnable implements Runnable {
 	@Override
 	public void run() {
 		try {
-			final List<FfpItem> toSends = serviceProvider.getDaoService().getByStatus(StatusEnum.TO_SEND);
-
+			final List<FfpItem> toSends = serviceProvider.getDaoService().getByStatus(StatusEnum.SENDED);
 			final AtomicBoolean someItemChanged = new AtomicBoolean(false);
-
 			toSends.forEach(item -> {
 				try {
-					serviceProvider.getBtService().startSharing(item);
-					item.setStatus(StatusEnum.SENDING);
-					LOGGER.info("Set status SENDING for {}.", item);
-					someItemChanged.set(true);
+					// Delete torrent file
+					if (Files.exists(item.getTorrentPath())) {
+						Files.delete(item.getTorrentPath());
+						LOGGER.info("Delete torrent for {}.", item);
+					}
+
+					// Delete Item as well if asked
+					if (deleteAfterSending) {
+						serviceProvider.getItemService().delete(item);
+						item.setStatus(StatusEnum.ARCHIVED);
+						LOGGER.info("Set status ARCHIVED for {}.", item);
+						someItemChanged.set(true);
+					}
 				} catch (final Exception e) {
-					LOGGER.error("Cannot startSharing " + item, e);
+					LOGGER.error("Cannot delete " + item, e);
 				}
 			});
-
-			// Update the RSS feed
-			serviceProvider.getRssFileGenerator()
-					.generateRss(serviceProvider.getDaoService().getByStatus(StatusEnum.SENDING));
 
 			// Save the domain if needed
 			if (someItemChanged.get()) {
 				serviceProvider.getDaoService().save();
 			}
 		} catch (final Exception e) {
-			LOGGER.error("Cannot watch TO_SEND status:" + e.getMessage(), e);
+			LOGGER.error("Cannot watch SENDED status:" + e.getMessage(), e);
 		}
 	}
 

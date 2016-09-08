@@ -109,6 +109,15 @@ public class ConfigService {
 	}
 
 	/**
+	 * Checks if is checksum use size.
+	 *
+	 * @return the boolean
+	 */
+	public Boolean isChecksumUseSize() {
+		return Boolean.valueOf(configuration.getProperty("ffp.checksum.use.size", "false"));
+	}
+
+	/**
 	 * Gets the rss url.
 	 *
 	 * @return the rss url
@@ -133,6 +142,15 @@ public class ConfigService {
 	 */
 	public Boolean isEnableHttp() {
 		return Boolean.valueOf(configuration.getProperty("ffp.enable.http", "true"));
+	}
+
+	/**
+	 * Checks if is delete after sending.
+	 *
+	 * @return the boolean
+	 */
+	public Boolean isDeleteAfterSending() {
+		return Boolean.valueOf(configuration.getProperty("ffp.delete.after.sending", "false"));
 	}
 
 	/**
@@ -189,6 +207,15 @@ public class ConfigService {
 	 */
 	public String getTorrentTrackerIp() {
 		return configuration.getProperty("torrent.tracker.ip", "127.0.0.1");
+	}
+
+	/**
+	 * Gets the torrent client ip.
+	 *
+	 * @return the torrent client ip
+	 */
+	public String getTorrentClientIp() {
+		return configuration.getProperty("torrent.client.ip", "127.0.0.1");
 	}
 
 	/**

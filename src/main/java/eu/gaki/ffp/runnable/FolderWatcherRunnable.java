@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +19,7 @@ import eu.gaki.ffp.domain.FfpItem;
 import eu.gaki.ffp.domain.StatusEnum;
 import eu.gaki.ffp.service.ServiceProvider;
 
+// TODO: Auto-generated Javadoc
 /**
  * Job for scan a watched folder.
  */
@@ -32,6 +34,9 @@ public class FolderWatcherRunnable implements Runnable {
 	/** The service provider. */
 	private final ServiceProvider serviceProvider;
 
+	/** The file change cooldown. */
+	private final Long fileChangeCooldown;
+
 	/**
 	 * Instantiates a new job for scan a watched folder.
 	 *
@@ -43,6 +48,7 @@ public class FolderWatcherRunnable implements Runnable {
 	public FolderWatcherRunnable(final Path watchedFolder, final ServiceProvider serviceProvider) {
 		this.watchedFolder = watchedFolder;
 		this.serviceProvider = serviceProvider;
+		fileChangeCooldown = serviceProvider.getConfigService().getFileChangeCooldown();
 	}
 
 	/**
@@ -54,10 +60,13 @@ public class FolderWatcherRunnable implements Runnable {
 
 			// Watch new files and folder in watched folder
 			if (Files.exists(watchedFolder)) {
+				LOGGER.trace("Watch folder {}.", watchedFolder);
 				try (DirectoryStream<Path> stream = Files.newDirectoryStream(watchedFolder)) {
-					final Long fileChangeCooldown = serviceProvider.getConfigService().getFileChangeCooldown();
+
+					final AtomicBoolean someItemChanged = new AtomicBoolean(false);
 					for (final Path path : stream) {
 						// Search for the path
+						LOGGER.trace("Watch file {}.", path);
 						final List<FfpItem> contains = serviceProvider.getDaoService().contains(path.toUri());
 						if (contains.isEmpty()) {
 							// Create a new item and compute the checksum
@@ -83,18 +92,23 @@ public class FolderWatcherRunnable implements Runnable {
 												// period:
 												// we mark as to send
 												item.setStatus(StatusEnum.TO_SEND);
+												someItemChanged.set(true);
 												LOGGER.info(
 														"Change status of {} to TO_SEND. Checksum don't have change for {} sec.",
 														item, between.getSeconds());
 											}
 										}
+									} else {
+										someItemChanged.set(true);
 									}
 								}
 							});
 						}
 					}
 					// Save the domain
-					serviceProvider.getDaoService().save();
+					if (someItemChanged.get()) {
+						serviceProvider.getDaoService().save();
+					}
 				} catch (final Exception e) {
 					LOGGER.error(e.getMessage(), e);
 				}

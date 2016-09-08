@@ -17,6 +17,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -39,6 +42,7 @@ import eu.gaki.ffp.domain.FfpFile;
 import eu.gaki.ffp.domain.FfpItem;
 import eu.gaki.ffp.domain.StatusEnum;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class BtService.
  *
@@ -57,6 +61,9 @@ public class BtService {
 
 	/** The tracker ip. */
 	private final String trackerIp;
+
+	/** The client ip. */
+	private final String clientIp;
 
 	/** The tracker announce url. */
 	private final String trackerAnnounceUrl;
@@ -85,6 +92,7 @@ public class BtService {
 		this.daoService = daoService;
 		trackerPort = configService.getTorrentTrackerPort();
 		trackerIp = configService.getTorrentTrackerIp();
+		clientIp = configService.getTorrentClientIp();
 		trackerAnnounceUrl = configService.getPublicUrlTrackerAnnounce();
 		torrentFileFolder = configService.getTorrentFileFolder();
 		torrentExtension = configService.getTorrentExtension();
@@ -127,7 +135,7 @@ public class BtService {
 		// Announce the torrent
 		final Torrent torrent = getTorrent(item);
 		startTracker();
-		if (tracker != null && !isTracked(item)) {
+		if (torrent != null && tracker != null && !isTracked(item)) {
 			// Get the torrent
 
 			// Add torrent to tracker
@@ -141,12 +149,7 @@ public class BtService {
 			// Start a seeder torrent
 			final SharedTorrent sharedTorrent = new SharedTorrent(trackedTorrent,
 					item.getFfpFiles().get(0).getPath().getParent().toFile(), true);
-			final Client seeder = new Client(InetAddress.getByName(trackerIp), sharedTorrent);
-			seeder.addObserver((observable, data) -> {
-				final Client client = (Client) observable;
-				final float progress = client.getTorrent().getCompletion();
-				LOGGER.info("[{}] Progress {} State {}", new Object[] { item, progress, client.getState() });
-			});
+			final Client seeder = new Client(InetAddress.getByName(clientIp), sharedTorrent);
 			executors.scheduleWithFixedDelay(() -> {
 				if (ClientState.WAITING.equals(seeder.getState())) {
 					seeder.share();
@@ -235,23 +238,30 @@ public class BtService {
 	 * @return the torrent
 	 */
 	protected Torrent createTorrentFile(final FfpItem item) {
+		final Instant start = Instant.now();
+		LOGGER.trace("Start create torrent of {}.", item);
+
 		Torrent torrent = null;
 		final Path torrentFile = computeTorrentFileName(item);
 		try (OutputStream fos = new FileOutputStream(torrentFile.toFile())) {
 
-			final URI announceURI = new URI(trackerAnnounceUrl);
+			final List<List<URI>> announceURIs = new ArrayList<>();
+			final List<URI> announceURI = new ArrayList<>();
+			announceURI.add(new URI(trackerAnnounceUrl));
+			announceURI.add(new URI("http", null, this.trackerIp, this.trackerPort, "/announce", null, null));
+
+			announceURIs.add(announceURI);
 
 			final String creator = String.format("%s (FreeboxFilePusher)", System.getProperty("user.name"));
 
 			final File firstFile = item.getFfpFiles().get(0).getPath().toFile();
 			if (item.getFfpFiles().size() > 1) {
-				final List<File> files = item.getFfpFiles().stream().map(FfpFile::getPath).map(Path::toFile)
-						.collect(Collectors.toList());
-				files.remove(firstFile);
+				final List<File> files = item.getFfpFiles().stream().map(FfpFile::getPath)
+						.filter(path -> !Files.isDirectory(path)).map(Path::toFile).collect(Collectors.toList());
 				Collections.sort(files);
-				torrent = Torrent.create(firstFile, files, announceURI, creator);
+				torrent = Torrent.create(firstFile, files, Torrent.DEFAULT_PIECE_LENGTH, announceURIs, creator);
 			} else if (item.getFfpFiles().size() == 1) {
-				torrent = Torrent.create(firstFile, announceURI, creator);
+				torrent = Torrent.create(firstFile, Torrent.DEFAULT_PIECE_LENGTH, announceURIs, creator);
 			}
 			torrent.save(fos);
 			// item.setTorrent(torrent);
@@ -260,6 +270,9 @@ public class BtService {
 		} catch (URISyntaxException | InterruptedException | IOException | NoSuchAlgorithmException e) {
 			LOGGER.error("Cannot create torrent file:" + e.getMessage(), e);
 		}
+		final Instant end = Instant.now();
+		LOGGER.trace("Stop create torrent of {}. Took {}", item, Duration.between(start, end));
+
 		return torrent;
 	}
 

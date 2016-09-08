@@ -6,6 +6,7 @@ package eu.gaki.ffp.service;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.util.Random;
@@ -20,8 +21,14 @@ import eu.gaki.ffp.domain.FfpItem;
 public class ChecksumFileServiceTest {
 
 	private final FileService fs = new FileService();
-	private final ChecksumService cfs = new ChecksumService();
+	private final ChecksumService cfs;
 	private final ItemService is = new ItemService(fs);
+
+	public ChecksumFileServiceTest() throws IOException {
+		final ConfigService cs = new ConfigService(
+				Paths.get("src/test/resources/eu/gaki/ffp/freeboxFilePusher.properties"));
+		cfs = new ChecksumService(cs);
+	}
 
 	@Test
 	public void computeChecksumFfpFile() {
@@ -57,6 +64,45 @@ public class ChecksumFileServiceTest {
 		}
 
 		final boolean result4 = cfs.computeChecksum(file, 1024);
+		Assert.assertTrue(result4);
+
+		Assert.assertTrue("No adler32 computed", file.getAdler32().size() > 0);
+	}
+
+	@Test
+	public void computeChecksumSizeFfpFile() {
+
+		// Creation d'un fichier de test
+		// Compute it checksum
+		final FfpFile file = CreationUtil.createFfpFile();
+
+		final boolean result1 = cfs.computeChecksumSize(file);
+		final boolean result2 = cfs.computeChecksumSize(file);
+		final boolean result3 = cfs.computeChecksumSize(file);
+
+		Assert.assertTrue(result1);
+		Assert.assertFalse(result2);
+		Assert.assertFalse(result3);
+
+		// Modification du fichier de test
+		try (FileChannel fc = FileChannel.open(file.getPath(), StandardOpenOption.WRITE, StandardOpenOption.APPEND)) {
+			final Random rdm = new Random();
+			final byte[] bytes = new byte[4096];
+			final ByteBuffer buff = ByteBuffer.allocate(bytes.length);
+			for (int i = 0; i < 10; i++) {
+				rdm.nextBytes(bytes);
+				buff.put(bytes);
+				buff.flip();
+				fc.write(buff);
+				buff.clear();
+			}
+
+		} catch (final IOException e) {
+			System.err.format("IOException: %s%n", e);
+			Assert.assertTrue(false);
+		}
+
+		final boolean result4 = cfs.computeChecksumSize(file);
 		Assert.assertTrue(result4);
 
 		Assert.assertTrue("No adler32 computed", file.getAdler32().size() > 0);

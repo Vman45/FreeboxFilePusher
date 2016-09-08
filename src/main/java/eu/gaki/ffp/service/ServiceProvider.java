@@ -64,7 +64,7 @@ public class ServiceProvider {
 		configService = new ConfigService(configPath);
 		rssFileGenerator = new RssService(configService);
 		daoService = new DaoService(configService);
-		checksumService = new ChecksumService();
+		checksumService = new ChecksumService(configService);
 		fileService = new FileService();
 		itemService = new ItemService(fileService);
 		btService = new BtService(configService, daoService);

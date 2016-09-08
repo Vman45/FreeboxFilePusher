@@ -30,7 +30,6 @@ public class BtServiceTest {
 			throws FileNotFoundException, NoSuchAlgorithmException, IOException, InterruptedException {
 		final FfpItem item = CreationUtil.createFfpFolderItem();
 		btService.startSharing(item);
-		Thread.currentThread().wait();
 	}
 
 }

@@ -32,7 +32,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.turn.ttorrent.client.Client;
-import com.turn.ttorrent.client.Client.ClientState;
 import com.turn.ttorrent.client.SharedTorrent;
 import com.turn.ttorrent.common.Torrent;
 import com.turn.ttorrent.tracker.TrackedTorrent;
@@ -150,10 +149,9 @@ public class BtService {
 			final SharedTorrent sharedTorrent = new SharedTorrent(trackedTorrent,
 					item.getFfpFiles().get(0).getPath().getParent().toFile(), true);
 			final Client seeder = new Client(InetAddress.getByName(clientIp), sharedTorrent);
+			seeder.share();
+
 			executors.scheduleWithFixedDelay(() -> {
-				if (ClientState.WAITING.equals(seeder.getState())) {
-					seeder.share();
-				}
 				// If sending ended we shutdown the sender
 				final long numberOfSeeder = trackedTorrent.getPeers().values().stream().filter(peer -> {
 					// We do not count the seeder
@@ -168,6 +166,15 @@ public class BtService {
 					LOGGER.info("Announce file remove: {}", item);
 					// Throw exception for stop this schedule
 					throw new RuntimeException("Stop watching for ending the seeder torrent");
+				} else {
+					// FIX : As cliend stop listening thread if unexpected
+					// handshake
+					// size (pstrlen in
+					// com.turn.ttorrent.client.ConnectionHandler
+					// and com.turn.ttorrent.client.Handshake) we assure to
+					// relaunch
+					// it (this call do nothing if already launched)
+					seeder.share();
 				}
 			}, 0, 1, TimeUnit.SECONDS);
 
@@ -264,8 +271,8 @@ public class BtService {
 				torrent = Torrent.create(firstFile, Torrent.DEFAULT_PIECE_LENGTH, announceURIs, creator);
 			}
 			torrent.save(fos);
-			// item.setTorrent(torrent);
 			item.setTorrentPath(torrentFile);
+			daoService.save();
 			LOGGER.info("Create torrent file: {}", torrentFile);
 		} catch (URISyntaxException | InterruptedException | IOException | NoSuchAlgorithmException e) {
 			LOGGER.error("Cannot create torrent file:" + e.getMessage(), e);

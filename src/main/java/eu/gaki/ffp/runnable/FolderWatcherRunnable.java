@@ -60,13 +60,11 @@ public class FolderWatcherRunnable implements Runnable {
 
 			// Watch new files and folder in watched folder
 			if (Files.exists(watchedFolder)) {
-				LOGGER.trace("Watch folder {}.", watchedFolder);
 				try (DirectoryStream<Path> stream = Files.newDirectoryStream(watchedFolder)) {
 
 					final AtomicBoolean someItemChanged = new AtomicBoolean(false);
 					for (final Path path : stream) {
 						// Search for the path
-						LOGGER.trace("Watch file {}.", path);
 						final List<FfpItem> contains = serviceProvider.getDaoService().contains(path.toUri());
 						if (contains.isEmpty()) {
 							// Create a new item and compute the checksum

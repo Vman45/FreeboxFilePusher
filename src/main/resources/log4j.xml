@@ -30,7 +30,15 @@
 		<level value="TRACE" />
 	</logger>
 	
+	<logger name="com.turn.ttorrent">
+		<level value="INFO" />
+	</logger>
+	
 	<logger name="com.turn.ttorrent.client.Client">
+		<level value="WARN" />
+	</logger>
+	
+	<logger name="com.turn.ttorrent.client.announce.HTTPTrackerClient">
 		<level value="WARN" />
 	</logger>
  

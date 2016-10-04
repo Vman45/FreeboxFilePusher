@@ -45,4 +45,14 @@ public class FilePusher {
 		items.add(item);
 	}
 
+	/**
+	 * Remove the ffp item.
+	 *
+	 * @param item
+	 *            the item
+	 */
+	public void removeFfpItem(final FfpItem item) {
+		items.remove(item);
+	}
+
 }

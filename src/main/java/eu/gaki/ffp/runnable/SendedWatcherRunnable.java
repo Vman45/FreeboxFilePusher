@@ -10,7 +10,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.gaki.ffp.FolderListener;
 import eu.gaki.ffp.domain.FfpItem;
 import eu.gaki.ffp.domain.StatusEnum;
 import eu.gaki.ffp.service.ServiceProvider;
@@ -52,8 +51,9 @@ public class SendedWatcherRunnable implements Runnable {
 			toSends.forEach(item -> {
 				try {
 					// Delete torrent file
-					if (Files.exists(item.getTorrentPath())) {
+					if (item.getTorrentPath() != null && Files.exists(item.getTorrentPath())) {
 						Files.delete(item.getTorrentPath());
+						item.setTorrentPathUri(null);
 						LOGGER.info("Delete torrent for {}.", item);
 					}
 
@@ -76,16 +76,6 @@ public class SendedWatcherRunnable implements Runnable {
 		} catch (final Exception e) {
 			LOGGER.error("Cannot watch SENDED status:" + e.getMessage(), e);
 		}
-	}
-
-	/**
-	 * Adds the folder listener.
-	 *
-	 * @param folderListener
-	 *            the folder listener
-	 */
-	void addFolderListener(final FolderListener folderListener) {
-		// listeners.add(folderListener);
 	}
 
 }

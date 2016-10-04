@@ -9,7 +9,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.gaki.ffp.FolderListener;
 import eu.gaki.ffp.domain.FfpItem;
 import eu.gaki.ffp.domain.StatusEnum;
 import eu.gaki.ffp.service.ServiceProvider;
@@ -69,16 +68,6 @@ public class ToSendWatcherRunnable implements Runnable {
 		} catch (final Exception e) {
 			LOGGER.error("Cannot watch TO_SEND status:" + e.getMessage(), e);
 		}
-	}
-
-	/**
-	 * Adds the folder listener.
-	 *
-	 * @param folderListener
-	 *            the folder listener
-	 */
-	void addFolderListener(final FolderListener folderListener) {
-		// listeners.add(folderListener);
 	}
 
 }

@@ -20,12 +20,12 @@ import org.slf4j.LoggerFactory;
 
 import eu.gaki.ffp.domain.FfpItem;
 import eu.gaki.ffp.domain.StatusEnum;
+import eu.gaki.ffp.runnable.ArchivedWatcherRunnable;
 import eu.gaki.ffp.runnable.FolderWatcherRunnable;
 import eu.gaki.ffp.runnable.SendedWatcherRunnable;
 import eu.gaki.ffp.runnable.ToSendWatcherRunnable;
 import eu.gaki.ffp.service.ServiceProvider;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class FreeboxFilePusher.
  *
@@ -87,17 +87,19 @@ public class FreeboxFilePusher implements Daemon {
 		LOGGER.trace("Start watching...");
 		// Read the watched folder list
 		final List<Path> foldersToWatch = serviceProvider.getConfigService().getFoldersToWatch();
-		final Long repeatInterval = serviceProvider.getConfigService().getRepeatInterval();
+		final Long folderScaninterval = serviceProvider.getConfigService().getFolderScanInterval();
 		for (final Path path : foldersToWatch) {
 			final FolderWatcherRunnable foldersWatcherRunnable = new FolderWatcherRunnable(path, serviceProvider);
-			watchFolderExecutor.scheduleWithFixedDelay(foldersWatcherRunnable, 0, repeatInterval, TimeUnit.SECONDS);
+			watchFolderExecutor.scheduleWithFixedDelay(foldersWatcherRunnable, 0, folderScaninterval, TimeUnit.SECONDS);
 		}
 
 		// Watcher of item status
-		watchStatusExecutor.scheduleWithFixedDelay(new ToSendWatcherRunnable(serviceProvider), 15, repeatInterval,
+		watchStatusExecutor.scheduleWithFixedDelay(new ToSendWatcherRunnable(serviceProvider), 15, folderScaninterval,
 				TimeUnit.SECONDS);
-		watchStatusExecutor.scheduleWithFixedDelay(new SendedWatcherRunnable(serviceProvider), 30, repeatInterval,
+		watchStatusExecutor.scheduleWithFixedDelay(new SendedWatcherRunnable(serviceProvider), 30, folderScaninterval,
 				TimeUnit.SECONDS);
+		watchStatusExecutor.scheduleWithFixedDelay(new ArchivedWatcherRunnable(serviceProvider), 45,
+				2 * folderScaninterval, TimeUnit.SECONDS);
 	}
 
 	/**

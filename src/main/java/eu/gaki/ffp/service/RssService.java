@@ -164,38 +164,43 @@ public class RssService {
 		final Set<RssFileItem> rssFileItems = new HashSet<>();
 		// Publish RSS file with tracked torrent files
 		items.forEach(item -> {
-			final RssFileItem rssFileItem = new RssFileItem();
-			// Rss link name
-			final String fileName = item.getFfpFiles().get(0).getPath().getFileName().toString();
-			rssFileItem.setName(fileName);
-			// Rss file URL
-			final Path torrentFile = item.getTorrentPath();
-			final String name = torrentFile.getFileName().toString();
-			String nameUrl;
-			try {
-				nameUrl = URLEncoder.encode(name, "UTF-8").replace("+", "%20");
-			} catch (final UnsupportedEncodingException e) {
-				LOGGER.error("Error when URL encode the file name. Fallback without URL encode", e);
-				nameUrl = name;
+			if (item.getTorrentPath() != null && item.getFfpFiles().size() > 0
+					&& item.getFfpFiles().get(0).getPath() != null) {
+				final RssFileItem rssFileItem = new RssFileItem();
+				// Rss link name
+				final String fileName = item.getFfpFiles().get(0).getPath().getFileName().toString();
+				rssFileItem.setName(fileName);
+				// Rss file URL
+				final Path torrentFile = item.getTorrentPath();
+				final String name = torrentFile.getFileName().toString();
+				String nameUrl;
+				try {
+					nameUrl = URLEncoder.encode(name, "UTF-8").replace("+", "%20");
+				} catch (final UnsupportedEncodingException e) {
+					LOGGER.error("Error when URL encode the file name. Fallback without URL encode", e);
+					nameUrl = name;
+				}
+				rssFileItem.setUrl(torrentUrlTemplate.replace("${file.name}", nameUrl));
+				// Rss file date
+				FileTime lastModifiedTime;
+				try {
+					lastModifiedTime = Files.getLastModifiedTime(torrentFile);
+					rssFileItem.setDate(new Date(lastModifiedTime.toMillis()));
+				} catch (final Exception e) {
+					LOGGER.error("Cannot determine the modification date of " + torrentFile, e);
+					rssFileItem.setDate(new Date());
+				}
+				// Rss file size
+				try {
+					rssFileItem.setSize(Files.size(torrentFile));
+				} catch (final Exception e) {
+					LOGGER.error("Cannot compute the size of " + torrentFile, e);
+					rssFileItem.setSize(0L);
+				}
+				rssFileItems.add(rssFileItem);
+			} else {
+				LOGGER.error("Cannot add item to rss: {}.", item);
 			}
-			rssFileItem.setUrl(torrentUrlTemplate.replace("${file.name}", nameUrl));
-			// Rss file date
-			FileTime lastModifiedTime;
-			try {
-				lastModifiedTime = Files.getLastModifiedTime(torrentFile);
-				rssFileItem.setDate(new Date(lastModifiedTime.toMillis()));
-			} catch (final Exception e) {
-				LOGGER.error("Cannot determine the modification date of " + torrentFile, e);
-				rssFileItem.setDate(new Date());
-			}
-			// Rss file size
-			try {
-				rssFileItem.setSize(Files.size(torrentFile));
-			} catch (final Exception e) {
-				LOGGER.error("Cannot compute the size of " + torrentFile, e);
-				rssFileItem.setSize(0L);
-			}
-			rssFileItems.add(rssFileItem);
 		});
 		return rssFileItems;
 	}

@@ -154,11 +154,11 @@ public class ConfigService {
 	}
 
 	/**
-	 * Gets the repeat interval.
+	 * Gets the folder scan interval.
 	 *
-	 * @return the repeat interval
+	 * @return the folder scan interval
 	 */
-	public Long getRepeatInterval() {
+	public Long getFolderScanInterval() {
 		return Long.valueOf(configuration.getProperty("folder.scan.interval.seconds", "600"));
 	}
 
@@ -169,6 +169,15 @@ public class ConfigService {
 	 */
 	public Long getFileChangeCooldown() {
 		return Long.valueOf(configuration.getProperty("folder.scan.file.change.cooldown.seconds", "3600"));
+	}
+
+	/**
+	 * Gets the archived file purge delay
+	 *
+	 * @return the file change cooldown
+	 */
+	public Long getArchivedPurgeDelay() {
+		return Long.valueOf(configuration.getProperty("ffp.archived.purge.delay.seconds", "5184000"));
 	}
 
 	/**

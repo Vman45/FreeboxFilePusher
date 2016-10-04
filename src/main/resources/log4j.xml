@@ -41,6 +41,10 @@
 	<logger name="com.turn.ttorrent.client.announce.HTTPTrackerClient">
 		<level value="WARN" />
 	</logger>
+	
+	<logger name="com.turn.ttorrent.tracker.TrackerService">
+		<level value="ERROR" />
+	</logger>
  
 	<root>
 		<level value="INFO" />

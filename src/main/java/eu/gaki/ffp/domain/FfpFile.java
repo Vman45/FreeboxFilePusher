@@ -64,6 +64,8 @@ public class FfpFile {
 		this.pathUri = pathUri;
 		if (pathUri != null) {
 			this.path = Paths.get(pathUri);
+		} else {
+			this.path = null;
 		}
 	}
 
@@ -93,7 +95,11 @@ public class FfpFile {
 	 */
 	@Transient
 	public void setPath(final Path path) {
-		setPathUri(path.toUri());
+		if (path != null) {
+			setPathUri(path.toUri());
+		} else {
+			setPathUri(null);
+		}
 	}
 
 	/**

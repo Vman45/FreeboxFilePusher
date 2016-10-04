@@ -107,6 +107,8 @@ public class FfpItem {
 		this.torrentPathUri = torrentPathUri;
 		if (torrentPathUri != null) {
 			this.torrentPath = Paths.get(torrentPathUri);
+		} else {
+			this.torrentPath = null;
 		}
 	}
 
@@ -138,29 +140,13 @@ public class FfpItem {
 	 */
 	@Transient
 	public void setTorrentPath(final Path path) {
-		setTorrentPathUri(path.toUri());
+		if (path != null) {
+			setTorrentPathUri(path.toUri());
+		} else {
+			setTorrentPathUri(null);
+		}
+
 	}
-
-	// /**
-	// * Gets the b torrent.
-	// *
-	// * @return the b torrent
-	// */
-	// @Transient
-	// public Torrent getTorrent() {
-	// return torrent;
-	// }
-
-	// /**
-	// * Sets the b torrent.
-	// *
-	// * @param torrent
-	// * the new b torrent
-	// */
-	// @Transient
-	// public void setTorrent(final Torrent torrent) {
-	// this.torrent = torrent;
-	// }
 
 	/**
 	 * Search an {@link FfpFile} by {@link URI}.

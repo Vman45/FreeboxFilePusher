@@ -117,9 +117,13 @@ public class DaoService {
 	 * @return The FfpItem which contain the {@link URI}
 	 */
 	public List<FfpItem> contains(final URI uri) {
-		final List<FfpItem> result = get().getItems().parallelStream().filter(p -> !p.contains(uri).isEmpty())
-				.collect(Collectors.toList());
-		return result;
+		return get().getItems().parallelStream().filter(p -> {
+			boolean result = false;
+			if (p != null) {
+				result = !p.contains(uri).isEmpty();
+			}
+			return result;
+		}).collect(Collectors.toList());
 	}
 
 	/**
@@ -131,8 +135,8 @@ public class DaoService {
 	 */
 	public List<FfpItem> getByStatus(final StatusEnum status) {
 		return get().getItems().parallelStream().filter(p -> {
-			boolean result = true;
-			if (status != null) {
+			boolean result = false;
+			if (p != null && status != null) {
 				result = status.equals(p.getStatus());
 			}
 			return result;

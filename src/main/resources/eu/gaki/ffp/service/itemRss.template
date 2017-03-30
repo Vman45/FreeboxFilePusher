@@ -1,5 +1,5 @@
      <item>
-      <title>${file.name}</title>
+      <title><![CDATA[${file.name}]]></title>
       <guid isPermaLink="true">${file.url}</guid>
       <pubDate>${file.date}</pubDate>
       <link>${file.url}</link>
